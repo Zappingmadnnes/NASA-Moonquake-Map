@@ -95,7 +95,7 @@ export default function Home() {
 	const [earthPosition, setEarthPosition] = useState([0, 0, 0]);
 	const [earthCenterPosition, setCenterEarthPosition] = useState([0, 0, 0]);
 	const [sunPosition, setSunPosition] = useState([0, 0, 0]);
-	const [selectedTime, setSelectedTime] = useState("2015-09-25 12:00");
+	const [selectedTime, setSelectedTime] = useState(2457061.5);
 
 	useEffect(() => {
 		// Load and parse your CSV files here and set the positions
@@ -107,10 +107,10 @@ export default function Home() {
 			complete: function (results) {
 				const data = results.data;
 				const matchingData = data.find(
-					(row) => row.Date === selectedTime
+					(row) => row.Date === selectedTime.toString()
 				);
 				const matchingIndex = data.findIndex(
-					(row) => row.Date === selectedTime
+					(row) => row.Date === selectedTime.toString()
 				);
 				if (matchingData) {
 					const x = parseFloat(data[matchingIndex]["X (km)"]);
@@ -137,10 +137,10 @@ export default function Home() {
 			complete: function (results) {
 				const data = results.data;
 				const matchingData = data.find(
-					(row) => row.Date === selectedTime
+					(row) => row.Date === selectedTime.toString()
 				);
 				const matchingIndex = data.findIndex(
-					(row) => row.Date === selectedTime
+					(row) => row.Date === selectedTime.toString()
 				);
 				if (matchingData) {
 					const x = parseFloat(data[matchingIndex]["X (km)"]);
@@ -161,10 +161,10 @@ export default function Home() {
 			complete: function (results) {
 				const data = results.data;
 				const matchingData = data.find(
-					(row) => row.Date === selectedTime
+					(row) => row.Date === selectedTime.toString()
 				);
 				const matchingIndex = data.findIndex(
-					(row) => row.Date === selectedTime
+					(row) => row.Date === selectedTime.toString()
 				);
 				if (matchingData) {
 					const x = parseFloat(data[matchingIndex]["X (km)"]);
@@ -188,10 +188,10 @@ export default function Home() {
 			complete: function (results) {
 				const data = results.data;
 				const matchingData = data.find(
-					(row) => row.Date === selectedTime
+					(row) => row.Date === selectedTime.toString()
 				);
 				const matchingIndex = data.findIndex(
-					(row) => row.Date === selectedTime
+					(row) => row.Date === selectedTime.toString()
 				);
 				if (matchingData) {
 					const x = -parseFloat(data[matchingIndex]["X (km)"]);
@@ -215,10 +215,10 @@ export default function Home() {
 			complete: function (results) {
 				const data = results.data;
 				const matchingData = data.find(
-					(row) => row.Date === selectedTime
+					(row) => row.Date === selectedTime.toString()
 				);
 				const matchingIndex = data.findIndex(
-					(row) => row.Date === selectedTime
+					(row) => row.Date === selectedTime.toString()
 				);
 
 				if (matchingData) {
@@ -284,21 +284,7 @@ export default function Home() {
 
 	// Temp function to increment by 1 for testing
 	const incrementDate = () => {
-		const currentDate = new Date(selectedTime);
-		currentDate.setDate(currentDate.getDate() + 1);
-
-		// Format the new date back to the string format you are using
-		const formattedDate = `${currentDate.getFullYear()}-${String(
-			currentDate.getMonth() + 1
-		).padStart(2, "0")}-${String(currentDate.getDate()).padStart(
-			2,
-			"0"
-		)} ${String(currentDate.getHours()).padStart(2, "0")}:${String(
-			currentDate.getMinutes()
-		).padStart(2, "0")}`;
-
-		setSelectedTime(formattedDate);
-		console.log(`New date: ${formattedDate}`);
+		setSelectedTime(selectedTime + 1);
 	};
 
 	return (
@@ -314,7 +300,6 @@ export default function Home() {
 					position={[
 						earthCenterPosition[0] - moonPosition[0],
 						earthCenterPosition[1] - moonPosition[1],
-						// earthCenterPosition[1],
 						earthCenterPosition[2] - moonPosition[2],
 					]}
 					rotation={[
