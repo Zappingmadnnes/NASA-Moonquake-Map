@@ -1,113 +1,325 @@
-import Image from 'next/image'
+// READ MY ASS
+// Z and Y are switched, beacuse that's how it is
+
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import { Canvas, useLoader } from "@react-three/fiber";
+import { Sphere, CameraControls } from "@react-three/drei";
+import * as THREE from "three";
+
+import Papa from "papaparse";
+
+const texture = "/4k-texture.jpeg";
+const displacement = "/4k-displacement.jpeg";
+const starMap = "/4k-starmap.jpeg";
+
+const scale = 1000;
+const radiusScale = 1000;
+
+const moonRadius = 1734.4 / radiusScale;
+const sunRadius = 696340 / radiusScale;
+const earthRadius = 6371 / radiusScale;
+const Moon = ({ position, rotation }) => {
+	// Load the moon texture
+	const moonTexture = useLoader(THREE.TextureLoader, texture);
+
+	// Load the displacement map
+	const displacementMap = useLoader(THREE.TextureLoader, displacement);
+
+	// const moonRef = useRef();
+	// useFrame(() => {
+	// 	if (moonRef.current) {
+	// 		moonRef.current.rotation.y += 0.002;
+	// 	}
+	// });
+
+	return (
+		<Sphere
+			args={[moonRadius, 64, 64]}
+			position={position}
+			rotation={rotation}
+		>
+			<meshStandardMaterial
+				map={moonTexture}
+				displacementMap={displacementMap}
+				displacementScale={0.0002 * radiusScale}
+			/>
+		</Sphere>
+	);
+};
+
+const Sun = ({ position }) => {
+	return (
+		<Sphere args={[sunRadius, 32, 32]} position={position}>
+			<meshBasicMaterial color={0xfce570} />
+		</Sphere>
+	);
+};
+
+const Earth = ({ position }) => {
+	return (
+		<Sphere args={[earthRadius, 32, 32]} position={position}>
+			<meshBasicMaterial color={"blue"} />
+		</Sphere>
+	);
+};
+const EarthCenter = ({ position }) => {
+	return (
+		<Sphere args={[0.1, 8, 8]} position={position}>
+			<meshBasicMaterial color={"gray"} />
+		</Sphere>
+	);
+};
+const StarMap = () => {
+	// Load the star map texture
+	const starMapTexture = useLoader(THREE.TextureLoader, starMap);
+	return (
+		<Sphere args={[1000000, 16, 16]}>
+			<meshStandardMaterial
+				map={starMapTexture}
+				side={THREE.BackSide}
+				emissiveIntensity={0.01}
+				emissive={0xffffff}
+				emissiveMap={starMapTexture}
+			/>
+		</Sphere>
+	);
+};
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+	const cameraControlRef = useRef();
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+	const [moonPosition, setMoonPosition] = useState([0, 0, 0]);
+	const [moonRotation, setMoonRotation] = useState([0, 0, 0]);
+	const [earthPosition, setEarthPosition] = useState([0, 0, 0]);
+	const [earthCenterPosition, setCenterEarthPosition] = useState([0, 0, 0]);
+	const [sunPosition, setSunPosition] = useState([0, 0, 0]);
+	const [selectedTime, setSelectedTime] = useState("2015-02-13 12:00");
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+	useEffect(() => {
+		// Load and parse your CSV files here and set the positions
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+		// Example of loading and parsing a CSV file for Earth
+		Papa.parse("/positions/earth_center_monthly.csv", {
+			download: true,
+			header: true,
+			complete: function (results) {
+				const data = results.data;
+				const matchingData = data.find(
+					(row) => row.Date === selectedTime
+				);
+				const matchingIndex = data.findIndex(
+					(row) => row.Date === selectedTime
+				);
+				if (matchingData) {
+					const x = -parseFloat(data[matchingIndex]["X (km)"]);
+					const z = parseFloat(data[matchingIndex]["Y (km)"]);
+					const y = -parseFloat(data[matchingIndex]["Z (km)"]);
+					setCenterEarthPosition([x / scale, y / scale, z / scale]);
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
+					// Log Earth position here, after setting the state
+					console.log(
+						`Earth center position: ${[
+							x / scale,
+							y / scale,
+							z / scale,
+						]}`
+					);
+				}
+			},
+		});
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+		// Repeat the above code for sun CSV file
+		Papa.parse("/positions/sun_positions_monthly.csv", {
+			download: true,
+			header: true,
+			complete: function (results) {
+				const data = results.data;
+				const matchingData = data.find(
+					(row) => row.Date === selectedTime
+				);
+				const matchingIndex = data.findIndex(
+					(row) => row.Date === selectedTime
+				);
+				if (matchingData) {
+					const x = -parseFloat(data[matchingIndex]["X (km)"]);
+					const z = parseFloat(data[matchingIndex]["Y (km)"]);
+					const y = -parseFloat(data[matchingIndex]["Z (km)"]);
+					setSunPosition([x / scale, y / scale, z / scale]);
+
+					console.log(
+						`Sun position: ${[x / scale, y / scale, z / scale]}`
+					);
+				}
+			},
+		});
+
+		Papa.parse("/positions/earth_positions_monthly.csv", {
+			download: true,
+			header: true,
+			complete: function (results) {
+				const data = results.data;
+				const matchingData = data.find(
+					(row) => row.Date === selectedTime
+				);
+				const matchingIndex = data.findIndex(
+					(row) => row.Date === selectedTime
+				);
+				if (matchingData) {
+					const x = -parseFloat(data[matchingIndex]["X (km)"]);
+					const z = parseFloat(data[matchingIndex]["Y (km)"]);
+					const y = -parseFloat(data[matchingIndex]["Z (km)"]);
+					setEarthPosition([x / scale, y / scale, z / scale]);
+
+					console.log(
+						`Earth relative position: ${[
+							x / scale,
+							y / scale,
+							z / scale,
+						]}`
+					);
+				}
+			},
+		});
+		Papa.parse("/positions/moon_positions_monthly.csv", {
+			download: true,
+			header: true,
+			complete: function (results) {
+				const data = results.data;
+				const matchingData = data.find(
+					(row) => row.Date === selectedTime
+				);
+				const matchingIndex = data.findIndex(
+					(row) => row.Date === selectedTime
+				);
+				if (matchingData) {
+					const x = -parseFloat(data[matchingIndex]["X (km)"]);
+					const z = parseFloat(data[matchingIndex]["Y (km)"]);
+					const y = -parseFloat(data[matchingIndex]["Z (km)"]);
+					setMoonPosition([x / scale, y / scale, z / scale]);
+
+					console.log(
+						`Moon relative  position: ${[
+							x / scale,
+							y / scale,
+							z / scale,
+						]}`
+					);
+				}
+			},
+		});
+		Papa.parse("/positions/moon_rotation.csv", {
+			download: true,
+			header: true,
+			complete: function (results) {
+				const data = results.data;
+				const matchingData = data.find(
+					(row) => row.Date === selectedTime
+				);
+				const matchingIndex = data.findIndex(
+					(row) => row.Date === selectedTime
+				);
+
+				if (matchingData) {
+					const ra = parseFloat(
+						data[matchingIndex]["Right Ascension"]
+					);
+					const de = parseFloat(data[matchingIndex]["Declination"]);
+					const cr = parseFloat(
+						data[matchingIndex]["Cumulative Rotation"]
+					);
+					setMoonRotation([ra, de, cr]);
+
+					console.log(`Moon rotation (ra, de, cr): ${[ra, de, cr]}`);
+				} else {
+					console.log("Not matching");
+				}
+			},
+		});
+	}, [selectedTime]);
+
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			console.log(
+				`Moving to : ${earthCenterPosition[0] - moonPosition[0]}, ${
+					earthCenterPosition[1] - moonPosition[1]
+				}, ${earthCenterPosition[2] - moonPosition[2]}}`
+			);
+			cameraControlRef.current?.setLookAt(
+				// Positon to move to
+				earthCenterPosition[0] - earthPosition[0],
+				earthCenterPosition[1] - earthPosition[1],
+				earthCenterPosition[2] - earthPosition[2],
+				// earthCenterPosition[0] - moonPosition[0] + moonRadius * 2,
+				// earthCenterPosition[1] - moonPosition[1],
+				// earthCenterPosition[2] - moonPosition[2],
+				// Target to look at
+				earthCenterPosition[0] - moonPosition[0],
+				earthCenterPosition[1] - moonPosition[1],
+				earthCenterPosition[2] - moonPosition[2],
+
+				true
+			);
+			cameraControlRef.current?.zoomTo(20, true);
+		}, 10);
+
+		// Clear the timer to prevent it from running if the component unmounts
+		return () => clearTimeout(timer);
+	}, [moonPosition, earthCenterPosition]);
+
+	// Temp function to increment by 1 for testing
+	const incrementDate = () => {
+		const currentDate = new Date(selectedTime);
+		currentDate.setDate(currentDate.getDate() + 1);
+
+		// Format the new date back to the string format you are using
+		const formattedDate = `${currentDate.getFullYear()}-${String(
+			currentDate.getMonth() + 1
+		).padStart(2, "0")}-${String(currentDate.getDate()).padStart(
+			2,
+			"0"
+		)} ${String(currentDate.getHours()).padStart(2, "0")}:${String(
+			currentDate.getMinutes()
+		).padStart(2, "0")}`;
+
+		setSelectedTime(formattedDate);
+		console.log(`New date: ${formattedDate}`);
+	};
+
+	return (
+		<div className="h-screen w-screen">
+			<div className="absolute z-50">
+				<button onClick={incrementDate}>Increment Date</button>
+			</div>
+			<Canvas camera={{ position: [0, 0, 5], far: 10000000000000 }}>
+				<CameraControls ref={cameraControlRef} smoothTime={0} />
+				<pointLight intensity={80000000000} position={sunPosition} />
+				<ambientLight intensity={0.1} />
+				<Moon
+					position={[
+						earthCenterPosition[0] - moonPosition[0],
+						earthCenterPosition[1] - moonPosition[1],
+						earthCenterPosition[2] - moonPosition[2],
+					]}
+					rotation={[
+						moonRotation[1],
+						moonRotation[2],
+						moonRotation[0],
+						// 0, 1, 0,
+					]}
+				/>
+
+				<StarMap />
+				<Sun position={sunPosition} />
+				<Earth
+					position={[
+						earthCenterPosition[0] - earthPosition[0],
+						earthCenterPosition[1] - earthPosition[1],
+						earthCenterPosition[2] - earthPosition[2],
+					]}
+				/>
+				{/* <EarthCenter position={earthCenterPosition} /> */}
+			</Canvas>
+		</div>
+	);
 }
