@@ -19,6 +19,7 @@ const radiusScale = 1000;
 const moonRadius = 1734.4 / radiusScale;
 const sunRadius = 696340 / radiusScale;
 const earthRadius = 6371 / radiusScale;
+
 const Moon = ({ position, rotation }) => {
 	// Load the moon texture
 	const moonTexture = useLoader(THREE.TextureLoader, texture);
@@ -94,7 +95,7 @@ export default function Home() {
 	const [earthPosition, setEarthPosition] = useState([0, 0, 0]);
 	const [earthCenterPosition, setCenterEarthPosition] = useState([0, 0, 0]);
 	const [sunPosition, setSunPosition] = useState([0, 0, 0]);
-	const [selectedTime, setSelectedTime] = useState("2015-02-13 12:00");
+	const [selectedTime, setSelectedTime] = useState("2015-09-25 12:00");
 
 	useEffect(() => {
 		// Load and parse your CSV files here and set the positions
@@ -112,9 +113,9 @@ export default function Home() {
 					(row) => row.Date === selectedTime
 				);
 				if (matchingData) {
-					const x = -parseFloat(data[matchingIndex]["X (km)"]);
-					const z = parseFloat(data[matchingIndex]["Y (km)"]);
-					const y = -parseFloat(data[matchingIndex]["Z (km)"]);
+					const x = parseFloat(data[matchingIndex]["X (km)"]);
+					const z = -parseFloat(data[matchingIndex]["Y (km)"]);
+					const y = parseFloat(data[matchingIndex]["Z (km)"]);
 					setCenterEarthPosition([x / scale, y / scale, z / scale]);
 
 					// Log Earth position here, after setting the state
@@ -142,9 +143,9 @@ export default function Home() {
 					(row) => row.Date === selectedTime
 				);
 				if (matchingData) {
-					const x = -parseFloat(data[matchingIndex]["X (km)"]);
-					const z = parseFloat(data[matchingIndex]["Y (km)"]);
-					const y = -parseFloat(data[matchingIndex]["Z (km)"]);
+					const x = parseFloat(data[matchingIndex]["X (km)"]);
+					const z = -parseFloat(data[matchingIndex]["Y (km)"]);
+					const y = parseFloat(data[matchingIndex]["Z (km)"]);
 					setSunPosition([x / scale, y / scale, z / scale]);
 
 					console.log(
@@ -166,9 +167,9 @@ export default function Home() {
 					(row) => row.Date === selectedTime
 				);
 				if (matchingData) {
-					const x = -parseFloat(data[matchingIndex]["X (km)"]);
-					const z = parseFloat(data[matchingIndex]["Y (km)"]);
-					const y = -parseFloat(data[matchingIndex]["Z (km)"]);
+					const x = parseFloat(data[matchingIndex]["X (km)"]);
+					const z = -parseFloat(data[matchingIndex]["Y (km)"]);
+					const y = parseFloat(data[matchingIndex]["Z (km)"]);
 					setEarthPosition([x / scale, y / scale, z / scale]);
 
 					console.log(
@@ -195,7 +196,7 @@ export default function Home() {
 				if (matchingData) {
 					const x = -parseFloat(data[matchingIndex]["X (km)"]);
 					const z = parseFloat(data[matchingIndex]["Y (km)"]);
-					const y = -parseFloat(data[matchingIndex]["Z (km)"]);
+					const y = -parseFloat(data[matchingIndex]["Z (km)"]); // VERTICAL BITCH
 					setMoonPosition([x / scale, y / scale, z / scale]);
 
 					console.log(
@@ -246,21 +247,35 @@ export default function Home() {
 				}, ${earthCenterPosition[2] - moonPosition[2]}}`
 			);
 			cameraControlRef.current?.setLookAt(
+				// // Positon to move to
+				// 0,
+				// 1000000,
+				// 0,
+				// // Target to look at
+				// 0,
+				// 0,
+				// 0,
 				// Positon to move to
 				earthCenterPosition[0] - earthPosition[0],
 				earthCenterPosition[1] - earthPosition[1],
 				earthCenterPosition[2] - earthPosition[2],
-				// earthCenterPosition[0] - moonPosition[0] + moonRadius * 2,
-				// earthCenterPosition[1] - moonPosition[1],
-				// earthCenterPosition[2] - moonPosition[2],
 				// Target to look at
 				earthCenterPosition[0] - moonPosition[0],
 				earthCenterPosition[1] - moonPosition[1],
 				earthCenterPosition[2] - moonPosition[2],
 
+				// // Positon to move to
+				// earthCenterPosition[0],
+				// earthCenterPosition[1] + 10000,
+				// earthCenterPosition[2],
+				// // Target to look at
+				// earthCenterPosition[0],
+				// earthCenterPosition[1],
+				// earthCenterPosition[2],
+
 				true
 			);
-			cameraControlRef.current?.zoomTo(20, true);
+			cameraControlRef.current?.zoomTo(7, true);
 		}, 10);
 
 		// Clear the timer to prevent it from running if the component unmounts
@@ -299,6 +314,7 @@ export default function Home() {
 					position={[
 						earthCenterPosition[0] - moonPosition[0],
 						earthCenterPosition[1] - moonPosition[1],
+						// earthCenterPosition[1],
 						earthCenterPosition[2] - moonPosition[2],
 					]}
 					rotation={[
