@@ -3,11 +3,12 @@
 
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { Canvas, useLoader } from "@react-three/fiber";
-import { Sphere, CameraControls } from "@react-three/drei";
+import { Canvas, useLoader, useFrame } from "@react-three/fiber";
+import { Sphere, CameraControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 
 import Papa from "papaparse";
+import MarkerText from "@/components/MarkerText";
 
 const texture = "/4k-texture.jpeg";
 const displacement = "/4k-displacement.jpeg";
@@ -20,32 +21,78 @@ const moonRadius = 1734.4 / radiusScale;
 const sunRadius = 696340 / radiusScale;
 const earthRadius = 6371 / radiusScale;
 
+const Marker = ({ lon, lat, moonRef }) => {
+	const sphereRef = useRef();
+	const phi = THREE.MathUtils.degToRad(90 - lat); // Convert latitude to radians
+	const theta = THREE.MathUtils.degToRad(lon); // Convert longitude to radians
+
+	const height = 0.005;
+	const sphereRadius = moonRadius + height;
+	const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
+	const y = sphereRadius * Math.cos(phi) + 0.1;
+	const z = sphereRadius * Math.sin(phi) * Math.sin(theta);
+
+	const initialRadius = 10 / radiusScale;
+	const pulseSpeed = 0.05;
+	const pulseMaxSize = 3;
+
+	useFrame(() => {
+		const sphere = sphereRef.current;
+		if (sphere.scale.x < pulseMaxSize) {
+			sphere.scale.set(
+				sphere.scale.x + pulseSpeed,
+				sphere.scale.y + pulseSpeed,
+				sphere.scale.z + pulseSpeed
+			);
+			sphere.material.opacity -= 0.01;
+		} else {
+			sphere.material.opacity = 0.8;
+
+			sphere.scale.set(initialRadius, initialRadius, initialRadius);
+		}
+	});
+
+	return (
+		<group position={[x, y, z]}>
+			<Sphere ref={sphereRef} args={[initialRadius, 32, 32]}>
+				<meshBasicMaterial color={"orange"} transparent opacity={0.8} />
+			</Sphere>
+			<Html
+				occlude={[moonRef]}
+				position={[x / 25, y / 25, z / 25]}
+				distanceFactor={2}
+			>
+				<MarkerText
+					type={"M"}
+					julianDate={2457061.5}
+					magnitude={3}
+					lat={0.0}
+					lon={0}
+				/>
+			</Html>
+		</group>
+	);
+};
+
 const Moon = ({ position, rotation }) => {
+	const moonRef = useRef();
 	// Load the moon texture
 	const moonTexture = useLoader(THREE.TextureLoader, texture);
 
 	// Load the displacement map
 	const displacementMap = useLoader(THREE.TextureLoader, displacement);
 
-	// const moonRef = useRef();
-	// useFrame(() => {
-	// 	if (moonRef.current) {
-	// 		moonRef.current.rotation.y += 0.002;
-	// 	}
-	// });
-
 	return (
-		<Sphere
-			args={[moonRadius, 64, 64]}
-			position={position}
-			rotation={rotation}
-		>
-			<meshStandardMaterial
-				map={moonTexture}
-				displacementMap={displacementMap}
-				displacementScale={0.0002 * radiusScale}
-			/>
-		</Sphere>
+		<group position={position} rotation={rotation} ref={moonRef}>
+			<Sphere args={[moonRadius, 128, 128]}>
+				<meshStandardMaterial
+					map={moonTexture}
+					displacementMap={displacementMap}
+					displacementScale={0.0001 * radiusScale}
+				/>
+			</Sphere>
+			<Marker lon={0} lat={0} moonRef={moonRef} />
+		</group>
 	);
 };
 
@@ -275,7 +322,7 @@ export default function Home() {
 
 				true
 			);
-			cameraControlRef.current?.zoomTo(7, true);
+			cameraControlRef.current?.zoomTo(1, true);
 		}, 10);
 
 		// Clear the timer to prevent it from running if the component unmounts
@@ -308,6 +355,7 @@ export default function Home() {
 						moonRotation[0],
 						// 0, 1, 0,
 					]}
+					cameraRef={cameraControlRef}
 				/>
 
 				<StarMap />
@@ -319,6 +367,17 @@ export default function Home() {
 						earthCenterPosition[2] - earthPosition[2],
 					]}
 				/>
+				{/* <Html
+					occlude={true}
+					position={[
+						earthCenterPosition[0] - moonPosition[0],
+						earthCenterPosition[1] - moonPosition[1],
+						earthCenterPosition[2] - moonPosition[2],
+					]}
+				>
+					HEy
+				</Html> */}
+
 				{/* <EarthCenter position={earthCenterPosition} /> */}
 			</Canvas>
 		</div>
