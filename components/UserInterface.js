@@ -1,6 +1,7 @@
 import Image from "next/image";
 import DraggableTimeline from "./DragableTimeline";
 import LegendDropdown from "./LegendDropdown";
+import MiniMap from "./MiniMap";
 
 export default function UserInterface({ data }) {
 	return (
@@ -69,15 +70,7 @@ export default function UserInterface({ data }) {
 						</div>
 					</div>
 				</div>
-				<div className="w-full border-t-4 border-r-4 pointer-events-auto border-[#EDEDED] rounded-xl">
-					<Image
-						src="/moon-map.jpeg"
-						alt="moon-map"
-						width={10000}
-						height={0}
-						className="w-full rounded-lg"
-					/>
-				</div>
+				<MiniMap lat={0} long={0} />
 			</div>
 			<LegendDropdown />
 		</div>
