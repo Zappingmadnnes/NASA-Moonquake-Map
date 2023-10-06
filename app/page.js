@@ -145,6 +145,8 @@ export default function Home() {
 	const [sunPosition, setSunPosition] = useState([0, 0, 0]);
 	const [selectedTime, setSelectedTime] = useState(2457061.5);
 
+	const [apiData, setApiData] = useState();
+
 	useEffect(() => {
 		// Load and parse your CSV files here and set the positions
 
@@ -330,6 +332,30 @@ export default function Home() {
 		return () => clearTimeout(timer);
 	}, [moonPosition, earthCenterPosition]);
 
+	useEffect(() => {
+		const fetchData = async () => {
+			fetch("/api").then((res) => {
+				console.log(res);
+			});
+
+			try {
+				const response = await fetch("/api", {
+					method: "GET",
+				});
+				if (!response.ok) {
+					throw new Error("Network response was not ok");
+				}
+				const data = await response.json();
+				console.log(data.result);
+				setApiData(data.result);
+			} catch (error) {
+				console.error("Error:", error);
+			}
+		};
+
+		fetchData();
+	}, []);
+
 	// Temp function to increment by 1 for testing
 	const incrementDate = () => {
 		setSelectedTime(selectedTime + 1);
@@ -337,7 +363,7 @@ export default function Home() {
 
 	return (
 		<div className="relative w-screen h-screen">
-			<UserInterface />
+			<UserInterface data={apiData} />
 			<div className="absolute z-50">
 				<button onClick={incrementDate}>Increment Date</button>
 			</div>
