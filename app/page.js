@@ -22,15 +22,15 @@ const moonRadius = 1734.4 / radiusScale;
 const sunRadius = 696340 / radiusScale;
 const earthRadius = 6371 / radiusScale;
 
-const Marker = ({ lon, lat, moonRef }) => {
+const Marker = ({ lat, lon, type, time, depth, duration }) => {
 	const sphereRef = useRef();
 	const phi = THREE.MathUtils.degToRad(90 - lat); // Convert latitude to radians
-	const theta = THREE.MathUtils.degToRad(lon); // Convert longitude to radians
+	const theta = -THREE.MathUtils.degToRad(lon); // Convert longitude to radians
 
-	const height = 0.005;
+	const height = 0.0;
 	const sphereRadius = moonRadius + height;
 	const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
-	const y = sphereRadius * Math.cos(phi) + 0.1;
+	const y = sphereRadius * Math.cos(phi);
 	const z = sphereRadius * Math.sin(phi) * Math.sin(theta);
 
 	const initialRadius = 10 / radiusScale;
@@ -53,22 +53,32 @@ const Marker = ({ lon, lat, moonRef }) => {
 		}
 	});
 
+	console.log(`Im @ ${lat}, ${lon}`);
 	return (
 		<group position={[x, y, z]}>
 			<Sphere ref={sphereRef} args={[initialRadius, 32, 32]}>
-				<meshBasicMaterial color={"orange"} transparent opacity={0.8} />
+				<meshBasicMaterial
+					color={
+						type == "AI"
+							? "#b8c7de"
+							: type == "SM"
+							? "#354A6C"
+							: type == "MI"
+							? "#D21F3C"
+							: "#EE984F"
+					}
+					transparent
+					opacity={0.8}
+				/>
 			</Sphere>
-			<Html
-				occlude={[moonRef]}
-				position={[x / 25, y / 25, z / 25]}
-				distanceFactor={2}
-			>
+			<Html position={[x / 25, y / 25, z / 25]} distanceFactor={2}>
 				<MarkerText
-					type={"M"}
-					julianDate={2457061.5}
-					magnitude={3}
-					lat={0.0}
-					lon={0}
+					type={type}
+					julianDate={time}
+					lat={lat}
+					lon={lon}
+					depth={depth}
+					duration={duration}
 				/>
 			</Html>
 		</group>
@@ -83,6 +93,26 @@ const Moon = ({ position, rotation }) => {
 	// Load the displacement map
 	const displacementMap = useLoader(THREE.TextureLoader, displacement);
 
+	const [csvData, setCsvData] = useState([]);
+
+	useEffect(() => {
+		// Function to load and parse the CSV data
+		const loadCSV = async () => {
+			const response = await fetch("/data/Quakes_All.csv"); // Replace with the path to your CSV file
+			const text = await response.text();
+			// console.log(text);
+			Papa.parse(text, {
+				header: true, // Assuming the first row contains headers
+				dynamicTyping: true, // Automatically convert numeric values
+				complete: (result) => {
+					setCsvData(result.data); // Store the parsed CSV data in the state
+				},
+			});
+		};
+
+		loadCSV();
+	}, []);
+
 	return (
 		<group position={position} rotation={rotation} ref={moonRef}>
 			<Sphere args={[moonRadius, 128, 128]}>
@@ -92,7 +122,22 @@ const Moon = ({ position, rotation }) => {
 					displacementScale={0.0001 * radiusScale}
 				/>
 			</Sphere>
-			<Marker lon={0} lat={0} moonRef={moonRef} />
+
+			{/* <Marker lat={0} lon={0} type={"MI"} time={0} /> */}
+			{csvData.map(
+				(entry, index) =>
+					index < 65 && (
+						<Marker
+							key={index}
+							lat={entry.Lat}
+							lon={entry.Lon}
+							type={entry.Type}
+							time={entry.JDate}
+							depth={entry.Depth}
+							duration={entry.Duration}
+						/>
+					)
+			)}
 		</group>
 	);
 };
@@ -334,12 +379,12 @@ export default function Home() {
 
 	useEffect(() => {
 		const fetchData = async () => {
-			fetch("/api").then((res) => {
+			fetch("/api?number=5").then((res) => {
 				console.log(res);
 			});
 
 			try {
-				const response = await fetch("/api", {
+				const response = await fetch("/api?number=5", {
 					method: "GET",
 				});
 				if (!response.ok) {

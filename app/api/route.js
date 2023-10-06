@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
 
-export async function GET() {
-	let python = spawn("python3", ["script.py"]);
+export async function GET(req, res) {
+	let python = spawn("python3", ["script.py", 5]);
 	let datatosend = "";
 
 	for await (const data of python.stdout) {
