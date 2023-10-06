@@ -9,6 +9,7 @@ import * as THREE from "three";
 
 import Papa from "papaparse";
 import MarkerText from "@/components/MarkerText";
+import UserInterface from "@/components/UserInterface";
 
 const texture = "/4k-texture.jpeg";
 const displacement = "/4k-displacement.jpeg";
@@ -335,7 +336,8 @@ export default function Home() {
 	};
 
 	return (
-		<div className="h-screen w-screen">
+		<div className="relative w-screen h-screen">
+			<UserInterface />
 			<div className="absolute z-50">
 				<button onClick={incrementDate}>Increment Date</button>
 			</div>
