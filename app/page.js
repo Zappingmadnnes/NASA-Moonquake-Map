@@ -601,43 +601,27 @@ export default function Home() {
 		loadCSV();
 	}, []);
 
-	function resetCamera() {
+	const resetCamera = () => {
 		console.log(
 			`Moving to : ${earthCenterPosition[0] - moonPosition[0]}, ${
 				earthCenterPosition[1] - moonPosition[1]
 			}, ${earthCenterPosition[2] - moonPosition[2]}}`
 		);
 		cameraControlRef.current?.setLookAt(
-			// // Positon to move to
-			// 0,
-			// 1000000,
-			// 0,
-			// // Target to look at
-			// 0,
-			// 0,
-			// 0,
 			// Positon to move to
-			earthCenterPosition[0] - earthPosition[0],
-			earthCenterPosition[1] - earthPosition[1],
-			earthCenterPosition[2] - earthPosition[2],
+			earthCenterPosition[0] - earthPosition[0] * 80.2,
+			earthCenterPosition[1] - earthPosition[1] * 80.2,
+			earthCenterPosition[2] - earthPosition[2] * 80.2,
 			// Target to look at
 			earthCenterPosition[0] - moonPosition[0],
 			earthCenterPosition[1] - moonPosition[1],
 			earthCenterPosition[2] - moonPosition[2],
 
-			// // Positon to move to
-			// earthCenterPosition[0],
-			// earthCenterPosition[1] + 10000,
-			// earthCenterPosition[2],
-			// // Target to look at
-			// earthCenterPosition[0],
-			// earthCenterPosition[1],
-			// earthCenterPosition[2],
-
 			false
 		);
-		cameraControlRef.current?.zoomTo(60, true);
-	}
+		cameraControlRef.current?.zoomTo(1, true);
+	};
+
 	useEffect(() => {
 		resetCamera();
 	}, [earthCenterPosition]);

@@ -28,11 +28,11 @@ function TimeControls({ time, setTime }) {
 
 	// Function to increment time by the warp value every tenth of a second
 	const incrementTime = () => {
-		setTime(time + warpFactors[warpIndex] / 24 / 60 / 60 / 10);
+		setTime(time + warpFactors[warpIndex] / 24 / 60 / 60 / 100);
 	};
 
 	useEffect(() => {
-		const intervalId = setInterval(incrementTime, 100); // Run every 100 milliseconds
+		const intervalId = setInterval(incrementTime, 10); // Run every 100 milliseconds
 		return () => clearInterval(intervalId); // Cleanup on component unmount
 	}, [time, incrementTime]);
 
