@@ -3,7 +3,7 @@ import { useState } from "react";
 import Image from "next/image";
 
 export default function LegendDropdown() {
-	const [expanded, setExpanded] = useState(false);
+	const [expanded, setExpanded] = useState(true);
 	const [modalShown, setModalShown] = useState(false);
 	const [selectedEvent, setSelectedEvent] = useState(null);
 
