@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { use, useEffect, useRef, useState } from "react";
 
-function latLongTo2D(lat, lon, mapWidth, mapHeight) {
+function latLongTo2D(lat, lon, mapWidth, mapHeight, selectedTime) {
 	let x = (lon + 180) * (mapWidth / 360);
 	let y = (90 - lat) * (mapHeight / 180);
 
@@ -39,12 +39,12 @@ const MapMarker = ({ minimapRef, lat, lon, isHovered, type }) => {
 		/>
 	);
 };
-export default function MiniMap({ events }) {
+export default function MiniMap({ events, selectedTime }) {
 	const minimapRef = useRef(null);
 
 	return (
 		<div
-			className="w-full border-t-4 border-r-4 pointer-events-auto border-[#354A6C] rounded-tr-xl relative"
+			className="w-full border-t-2 border-r-2 pointer-events-auto border-[#354A6C]  relative"
 			ref={minimapRef}
 		>
 			<Image
@@ -52,12 +52,13 @@ export default function MiniMap({ events }) {
 				alt="moon-map"
 				width={10000}
 				height={5000}
-				className="w-full rounded-tr-md"
+				className="w-full "
 			/>
 			{/* <MapMarker lat={0} lon={0} minimapRef={minimapRef} /> */}
 			{events.map(
 				(entry, index) =>
-					index < 65 && (
+					entry.JDate <= selectedTime &&
+					selectedTime <= entry.JDate + 30 && (
 						<MapMarker
 							key={index}
 							lat={entry.Lat}

@@ -54,6 +54,14 @@ function DraggableTimeline({ setTime, time }) {
 		};
 	}, [isDragging, handlePosition]);
 
+	useEffect(() => {
+		if (!isDragging) {
+			setHandlePosition(
+				((time - start_date) / (end_date - start_date)) * 100
+			);
+		}
+	}, [time, isDragging]);
+
 	// JD to gregorian
 
 	return (

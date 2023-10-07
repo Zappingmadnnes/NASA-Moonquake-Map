@@ -78,7 +78,7 @@ export default function LegendDropdown() {
 				</div>
 			</div>
 			{modalShown && selectedEvent && (
-				<div className="absolute inset-0 flex items-center justify-center w-screen h-screen bg-black bg-opacity-50 pointer-events-none z-[9999]">
+				<div className="absolute inset-0 flex items-center justify-center w-screen h-screen bg-black bg-opacity-50 z-[9999]">
 					<div className="bg-[#0C141D] opacity-90 border-[#354A6C] border rounded-md p-7 w-[40%] flex pointer-events-auto relative flex-col items-start justify-start">
 						<div
 							className="absolute w-8 aspect-square top-6 right-6 hover:cursor-pointer"

@@ -257,18 +257,11 @@ export default function Home() {
 	const [earthPosition, setEarthPosition] = useState([0, 0, 0]);
 	const [earthCenterPosition, setCenterEarthPosition] = useState([0, 0, 0]);
 	const [sunPosition, setSunPosition] = useState([0, 0, 0]);
-	const [selectedTime, setSelectedTime] = useState(2440546); // Earliest quake
+	const [selectedTime, setSelectedTime] = useState(2440541); // Earliest quake -5
 	const [timeBeforeUpdate, setTimeBeforeUpdate] = useState(0);
 
 	const [apiData, setApiData] = useState({});
-
-	const [earthCenterCSV, setEarthCenterCSV] = useState([]);
-	const [earthPositionCSV, setEarthPositionCSV] = useState([]);
-	const [moonPositionCSV, setMoonPositionCSV] = useState([]);
-	const [sunPositionCSV, setSunPositionCSV] = useState([]);
-	const [moonRotationCSV, setMoonRotationCSV] = useState([]);
 	const [CSV, setCSV] = useState([]);
-	const [lastLine, setLastLine] = useState(0);
 
 	useEffect(() => {
 		Papa.parse("/positions/coordsCollection.csv", {
@@ -283,17 +276,51 @@ export default function Home() {
 
 	useEffect(() => {
 		if (CSV.length > 0) {
-			let closestRowIndex = 0;
-			for (let i = 0; i < CSV.length - 10; i++) {
-				if (selectedTime >= CSV[i].Date) {
-					closestRowIndex = i;
-					if (selectedTime < CSV[i + 1].Date) {
-						console.log("Found at " + i);
-						break;
-					}
-				}
+			// Tries to predict i
+			const start_time = 2440541;
+			const end_time = 2443417.9999571294;
+
+			// let predictedI = parseInt(
+			// 	Math.min(
+			// 		Math.max(
+			// 			((selectedTime - start_time) /
+			// 				(end_time - start_time)) *
+			// 				276193,
+			// 			0
+			// 		),
+			// 		276193
+			// 	)
+			// );
+			// console.log(predictedI);
+			function predict(time) {
+				return parseInt(
+					Math.min(
+						Math.max(
+							((time - start_time) / (end_time - start_time)) *
+								276193 -
+								10,
+							0
+						),
+						276193
+					)
+				);
 			}
-			// if (closestRowIndex == 0) {
+			// console.log(predict(2442043.5520609436));
+			let closestRowIndex = predict(selectedTime);
+
+			// let closestRowIndex = -1;
+			// for (let i = predictedI; i < CSV.length - 10; i++) {
+			// 	if (selectedTime >= CSV[i].Date) {
+			// 		closestRowIndex = i;
+			// 		if (selectedTime < CSV[i + 1].Date) {
+			// 			console.log("Breaking");
+			// 			break;
+			// 		}
+			// 	}
+			// }
+
+			// // Fallback if i is wrong
+			// if (closestRowIndex == -1) {
 			// 	console.log("rerunning");
 			// 	for (let i = 0; i < CSV.length - 100; i++) {
 			// 		if (selectedTime >= CSV[i].Date) {
@@ -388,15 +415,6 @@ export default function Home() {
 				moonRef={moonRef}
 				cameraRef={cameraControlRef}
 			/>
-			<div className="absolute right-0 z-50 top-64">
-				<button onClick={resetCamera}>Reset camera</button>
-				<button onClick={() => console.log(sunPosition)}>
-					Moon pos
-				</button>
-				<button onClick={() => console.log(markerPositions)}>
-					Marker positions
-				</button>
-			</div>
 			<Canvas
 				camera={{
 					position: [

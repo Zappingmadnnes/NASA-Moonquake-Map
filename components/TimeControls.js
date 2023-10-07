@@ -52,7 +52,7 @@ function TimeControls({ time, setTime }) {
 	};
 
 	return (
-		<div className="absolute bottom-0 left-[30%] py-6 px-12 bg-[#0C141D] border-[#354A6C] pointer-events-auto opacity-80 border-r border-t rounded-tr-lg flex flex-col justify-center items-center ">
+		<div className="absolute bottom-0 left-[30%] pb-6 pt-3 px-12 bg-[#0C141D] border-[#354A6C] pointer-events-auto opacity-80 border-r border-t rounded-tr-lg flex flex-col justify-center items-center ">
 			<div className="font-VT323 text-3xl mb-4">
 				{warpFactors[warpIndex] == 0
 					? "Paused"
