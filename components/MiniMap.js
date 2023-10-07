@@ -44,7 +44,7 @@ export default function MiniMap({ events }) {
 
 	return (
 		<div
-			className="w-full border-t-4 border-r-4 pointer-events-auto border-[#354A6C] rounded-xl relative"
+			className="w-full border-t-4 border-r-4 pointer-events-auto border-[#354A6C] rounded-tr-xl relative"
 			ref={minimapRef}
 		>
 			<Image
@@ -52,7 +52,7 @@ export default function MiniMap({ events }) {
 				alt="moon-map"
 				width={10000}
 				height={5000}
-				className="w-full rounded-lg"
+				className="w-full rounded-tr-md"
 			/>
 			{/* <MapMarker lat={0} lon={0} minimapRef={minimapRef} /> */}
 			{events.map(

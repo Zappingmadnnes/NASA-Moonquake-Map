@@ -451,7 +451,12 @@ export default function Home() {
 
 	return (
 		<div className="relative w-screen h-screen">
-			<UserInterface data={apiData} events={csvData} />
+			<UserInterface
+				data={apiData}
+				events={csvData}
+				time={selectedTime}
+				setTime={setSelectedTime}
+			/>
 			<div className="absolute right-0 z-50">
 				<button onClick={incrementDate}>Increment Date</button>
 			</div>
