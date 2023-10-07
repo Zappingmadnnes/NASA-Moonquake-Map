@@ -3,7 +3,7 @@
 
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { Canvas, useLoader, useFrame } from "@react-three/fiber";
+import { Canvas, useLoader, useFrame, events } from "@react-three/fiber";
 import { Sphere, CameraControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -128,33 +128,13 @@ const Marker = ({
 	);
 };
 
-const Moon = ({ position, rotation, cameraRef }) => {
+const Moon = ({ position, rotation, cameraRef, events }) => {
 	const moonRef = useRef();
 	// Load the moon texture
 	const moonTexture = useLoader(THREE.TextureLoader, texture);
 
 	// Load the displacement map
 	const displacementMap = useLoader(THREE.TextureLoader, displacement);
-
-	const [csvData, setCsvData] = useState([]);
-
-	useEffect(() => {
-		// Function to load and parse the CSV data
-		const loadCSV = async () => {
-			const response = await fetch("/data/Quakes_All.csv"); // Replace with the path to your CSV file
-			const text = await response.text();
-			// console.log(text);
-			Papa.parse(text, {
-				header: true, // Assuming the first row contains headers
-				dynamicTyping: true, // Automatically convert numeric values
-				complete: (result) => {
-					setCsvData(result.data); // Store the parsed CSV data in the state
-				},
-			});
-		};
-
-		loadCSV();
-	}, []);
 
 	return (
 		<group position={position} rotation={rotation} ref={moonRef}>
@@ -165,7 +145,7 @@ const Moon = ({ position, rotation, cameraRef }) => {
 					displacementScale={0.0001 * radiusScale}
 				/>
 			</Sphere>
-			{csvData.map(
+			{events.map(
 				(entry, index) =>
 					index < 65 && (
 						<Marker
@@ -449,10 +429,30 @@ export default function Home() {
 		setSelectedTime(selectedTime + 1);
 	};
 
+	const [csvData, setCsvData] = useState([]);
+
+	useEffect(() => {
+		// Function to load and parse the CSV data
+		const loadCSV = async () => {
+			const response = await fetch("/data/Quakes_All.csv"); // Replace with the path to your CSV file
+			const text = await response.text();
+			// console.log(text);
+			Papa.parse(text, {
+				header: true, // Assuming the first row contains headers
+				dynamicTyping: true, // Automatically convert numeric values
+				complete: (result) => {
+					setCsvData(result.data); // Store the parsed CSV data in the state
+				},
+			});
+		};
+
+		loadCSV();
+	}, []);
+
 	return (
 		<div className="relative w-screen h-screen">
-			<UserInterface data={apiData} />
-			<div className="absolute z-50">
+			<UserInterface data={apiData} events={csvData} />
+			<div className="absolute right-0 z-50">
 				<button onClick={incrementDate}>Increment Date</button>
 			</div>
 			<Canvas
@@ -469,6 +469,7 @@ export default function Home() {
 				<pointLight intensity={80000000000} position={sunPosition} />
 				<ambientLight intensity={0.1} />
 				<Moon
+					events={csvData}
 					position={[
 						earthCenterPosition[0] - moonPosition[0],
 						earthCenterPosition[1] - moonPosition[1],

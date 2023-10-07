@@ -16,6 +16,7 @@
 		"papaparse": "^5.4.1",
 		"react": "^18",
 		"react-dom": "^18",
+		"tailwind-scrollbar": "^3.0.5",
 		"three": "^0.157.0"
 	},
 	"devDependencies": {

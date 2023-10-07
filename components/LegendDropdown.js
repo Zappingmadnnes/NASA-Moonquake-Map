@@ -11,7 +11,7 @@ export default function LegendDropdown() {
 				expanded ? "translate-y-0" : "-translate-y-[100%]"
 			}`}
 		>
-			<div className="flex flex-col items-start justify-center w-full gap-2 px-6 py-6 bg-[#0C141D] border-[#354A6C] border-b border-l pointer-events-auto opacity-80 rounded-bl-lg">
+			<div className="flex flex-col items-start justify-center w-full gap-2 px-6 py-6 bg-[#0C141D] border-[#354A6C] border-b-2 border-l-2 pointer-events-auto opacity-80 rounded-bl-lg">
 				<h2 className="mb-3 font-VT323 text-2xl">
 					Event Classifications
 				</h2>
@@ -30,7 +30,7 @@ export default function LegendDropdown() {
 			</div>
 			<div
 				onClick={() => setExpanded(!expanded)}
-				className="py-1 hover:cursor-pointer flex flex-col items-center justify-center w-[40%] absolute bg-[#0C141D] border-[#354A6C] border-b border-l border-r backdrop-blur-2xl opacity-70 rounded-bl-xl rounded-br-xl left-[30%] pointer-events-auto"
+				className="py-1 hover:cursor-pointer flex flex-col items-center justify-center w-[40%] absolute bg-[#0C141D] border-[#354A6C] border-b-2 border-l-2 border-r-2 opacity-80 rounded-bl-xl rounded-br-xl left-[30%] pointer-events-auto"
 			>
 				<p className="leading-none text-lg font-VT323">Info</p>
 				<Image

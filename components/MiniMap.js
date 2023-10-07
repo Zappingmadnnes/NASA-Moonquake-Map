@@ -1,5 +1,6 @@
+"use client";
 import Image from "next/image";
-import { useRef } from "react";
+import { use, useEffect, useRef, useState } from "react";
 
 function latLongTo2D(lat, lon, mapWidth, mapHeight) {
 	let x = (lon + 180) * (mapWidth / 360);
@@ -12,16 +13,34 @@ function latLongTo2D(lat, lon, mapWidth, mapHeight) {
 	return { x, y };
 }
 
-export default function MiniMap({ lat, long }) {
+const MapMarker = ({ minimapRef, lat, lon, isHovered, type }) => {
+	const [hasHovered, setHasHovered] = useState(false);
+	const actualWidth = minimapRef.current?.offsetWidth || 2;
+	const actualHeight = minimapRef.current?.offsetHeight || 1;
+
+	const { x, y } = latLongTo2D(lat, lon, actualWidth, actualHeight);
+
+	return (
+		<div
+			className={`absolute w-2 h-2 animate-pulse rounded-full transition-all ${
+				type == "AI"
+					? "bg-[#b8c7de]"
+					: type == "SM"
+					? "bg-[#354A6C]"
+					: type == "MI"
+					? "bg-[#D21F3C]"
+					: "bg-[#EE984F]"
+			}`}
+			style={{
+				top: y,
+				left: x,
+				transform: "translate(-50%, -50%)",
+			}}
+		/>
+	);
+};
+export default function MiniMap({ events }) {
 	const minimapRef = useRef(null);
-
-	const mapWidth = 10000; // width of your minimap image
-	const mapHeight = 5000; // assuming the height is half of the width for a 2:1 aspect ratio
-
-	const actualWidth = minimapRef.current?.offsetWidth || mapWidth;
-	const actualHeight = minimapRef.current?.offsetHeight || mapHeight;
-
-	const { x, y } = latLongTo2D(lat, long, actualWidth, actualHeight);
 
 	return (
 		<div
@@ -31,22 +50,23 @@ export default function MiniMap({ lat, long }) {
 			<Image
 				src="/moon-map.jpeg"
 				alt="moon-map"
-				width={mapWidth}
-				height={mapHeight}
+				width={10000}
+				height={5000}
 				className="w-full rounded-lg"
 			/>
-			<div
-				style={{
-					position: "absolute",
-					top: y,
-					left: x,
-					width: "10px",
-					height: "10px",
-					backgroundColor: "red",
-					borderRadius: "50%",
-					transform: "translate(-50%, -50%)",
-				}}
-			></div>
+			{/* <MapMarker lat={0} lon={0} minimapRef={minimapRef} /> */}
+			{events.map(
+				(entry, index) =>
+					index < 65 && (
+						<MapMarker
+							key={index}
+							lat={entry.Lat}
+							lon={entry.Lon}
+							type={entry.Type}
+							minimapRef={minimapRef}
+						/>
+					)
+			)}
 		</div>
 	);
 }
