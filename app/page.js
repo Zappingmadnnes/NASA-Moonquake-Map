@@ -32,9 +32,6 @@ const Marker = ({
 	duration,
 	cameraRef,
 	moonRef,
-	markerPositions,
-	setMarkerPositions,
-	id,
 }) => {
 	const sphereRef = useRef();
 	const groupRef = useRef();
@@ -91,35 +88,6 @@ const Marker = ({
 		);
 		cameraRef.current?.dolly(-1, true);
 	}
-
-	// To add to marker positions
-	// useEffect(() => {
-	// 	const globalPosition = new THREE.Vector3();
-	// 	if (groupRef.current) {
-	// 		groupRef.current.getWorldPosition(globalPosition);
-	// 	}
-	// 	const existingObjectIndex = markerPositions.findIndex(
-	// 		(obj) => obj.id === id
-	// 	);
-
-	// 	const sx = globalPosition.x;
-	// 	const sy = globalPosition.y;
-	// 	const sz = globalPosition.z;
-
-	// 	const newObj = { id, sx, sy, sz };
-
-	// 	if (existingObjectIndex !== -1) {
-	// 		// Copy the current state array and replace the existing object
-	// 		const updatedArray = [...markerPositions];
-	// 		updatedArray[existingObjectIndex] = newObj;
-
-	// 		// Update the state with the new array
-	// 		setMarkerPositions(updatedArray);
-	// 	} else {
-	// 		// If it doesn't exist, add the new object to the state
-	// 		setMarkerPositions([...markerPositions, newObj]);
-	// 	}
-	// }, [moonRef.current?.position.x, id, markerPositions, setMarkerPositions]);
 
 	return (
 		<group
@@ -330,28 +298,33 @@ export default function Home() {
 			const Cz = -parseFloat(CSV[closestRowIndex]["ECY (km)"]);
 			const Cy = parseFloat(CSV[closestRowIndex]["ECZ (km)"]);
 
+			const Mx = -parseFloat(CSV[closestRowIndex]["MX (km)"]);
+			const Mz = parseFloat(CSV[closestRowIndex]["MY (km)"]);
+			const My = -parseFloat(CSV[closestRowIndex]["MZ (km)"]);
+			setMoonPosition([0, 0, 0]);
+			// setMoonPosition([
+			// 	(Cx - Mx) / scale,
+			// 	(-Cy - My) / scale,
+			// 	(Cz - Mz) / scale,
+			// ]);
+
 			const Ex = parseFloat(CSV[closestRowIndex]["EX (km)"]);
 			const Ez = -parseFloat(CSV[closestRowIndex]["EY (km)"]);
 			const Ey = parseFloat(CSV[closestRowIndex]["EZ (km)"]);
 			setEarthPosition([
-				(Cx + Ex) / scale,
-				(-Cy + Ey) / scale,
-				(Cz + Ez) / scale,
-			]);
-
-			const Mx = -parseFloat(CSV[closestRowIndex]["MX (km)"]);
-			const Mz = parseFloat(CSV[closestRowIndex]["MY (km)"]);
-			const My = -parseFloat(CSV[closestRowIndex]["MZ (km)"]);
-			setMoonPosition([
-				(Cx - Mx) / scale,
-				(-Cy - My) / scale,
-				(Cz - Mz) / scale,
+				(Cx + Ex) / scale - (Cx - Mx) / scale,
+				(-Cy + Ey) / scale - (-Cy - My) / scale,
+				(Cz + Ez) / scale - (Cz - Mz) / scale,
 			]);
 
 			const Sx = parseFloat(CSV[closestRowIndex]["SX (km)"]);
 			const Sz = -parseFloat(CSV[closestRowIndex]["SY (km)"]);
 			const Sy = parseFloat(CSV[closestRowIndex]["SZ (km)"]);
-			setSunPosition([Sx / scale, Sy / scale, Sz / scale]);
+			setSunPosition([
+				Sx / scale - (Cx - Mx) / scale,
+				Sy / scale - (-Cy - My) / scale,
+				Sz / scale - (Cz - Mz) / scale,
+			]);
 
 			const ra = parseFloat(CSV[closestRowIndex]["Right Ascension"]);
 			const de = parseFloat(CSV[closestRowIndex]["Declination"]);
@@ -380,28 +353,7 @@ export default function Home() {
 		loadCSV();
 	}, []);
 
-	const resetCamera = () => {
-		cameraControlRef.current?.setLookAt(
-			// Positon to move to
-			earthPosition[0],
-			earthPosition[1],
-			earthPosition[2],
-			// Target to look at
-			moonPosition[0],
-			moonPosition[1],
-			moonPosition[2],
-
-			false
-		);
-
-		cameraControlRef.current?.zoomTo(70, true);
-	};
-
-	useEffect(() => {
-		resetCamera();
-
-		console.log([moonPosition, earthPosition, sunPosition]);
-	}, [moonPosition]);
+	useEffect(() => {}, [cameraControlRef]);
 
 	const [markerPositions, setMarkerPositions] = useState([]);
 
@@ -421,11 +373,7 @@ export default function Home() {
 			/>
 			<Canvas
 				camera={{
-					position: [
-						moonPosition[0],
-						moonPosition[1],
-						moonPosition[2],
-					],
+					position: [-5, 2, -2],
 					far: 10000000000000,
 				}}
 			>

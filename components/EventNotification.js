@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
+import * as THREE from "three";
 
-function EventNotification({ event, x, y, z, moonRef, cameraRef }) {
+function EventNotification({ event, moonRef, cameraRef }) {
 	const lat = event.Lat;
 	const lon = event.Lon;
 	const type = event.Type;
@@ -39,24 +40,35 @@ function EventNotification({ event, x, y, z, moonRef, cameraRef }) {
 			return "opacity-[1]";
 		}
 	};
+	const phi = THREE.MathUtils.degToRad(90 - lat); // Convert latitude to radians
+	const theta = -THREE.MathUtils.degToRad(lon);
+	const sphereRadius = 1734.4 / 1000;
+	const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
+	const y = sphereRadius * Math.cos(phi);
+	const z = sphereRadius * Math.sin(phi) * Math.sin(theta);
+
+	const newPosition = new THREE.Vector3(x, y, z);
+	const rotatedPosition = newPosition
+		.clone()
+		.applyEuler(moonRef.current?.rotation);
 
 	function cameraPanIn() {
 		cameraRef.current?.setLookAt(
 			// Positon to move to
-			x,
-			y,
-			z,
+			rotatedPosition.x,
+			rotatedPosition.y,
+			rotatedPosition.z,
 			// Target to look at
-			moonRef.current.position.x,
-			moonRef.current.position.y,
-			moonRef.current.position.z,
+			0,
+			0,
+			0,
 			true
 		);
 		cameraRef.current?.dolly(-1, true);
 	}
 	return (
 		<div
-			// onClick={cameraPanIn}
+			onClick={cameraPanIn}
 			className={`bg-[#0C141D] w-full cursor-pointer ${
 				type == "AI"
 					? "border-[#b8c7de]"
