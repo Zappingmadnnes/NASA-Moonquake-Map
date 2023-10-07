@@ -83,7 +83,12 @@ function DraggableTimeline({ setTime, time }) {
 		const millisecondsSinceEpoch = (time - 2440587.5) * 24 * 60 * 60 * 1000;
 		const gregorianDate = new Date(millisecondsSinceEpoch);
 		const year = gregorianDate.getFullYear();
-		const positionPercent = ((year - 1969) / (1979 - 1969)) * 100;
+		const month = gregorianDate.getMonth(); // 0-based month
+
+		const totalMonths = (year - 1969) * 12 + month;
+		const totalRangeMonths = (1979 - 1969) * 12;
+		const positionPercent = (totalMonths / totalRangeMonths) * 100;
+
 		setHandlePosition(positionPercent);
 		setCurrentYear(year);
 	}, [time]);
