@@ -16,9 +16,9 @@ export default function UserInterface({
 	return (
 		<div className="absolute inset-0 w-screen h-screen overflow-hidden z-[99999999] pointer-events-none">
 			<div className="absolute top-0 left-[30%] right-[30%] bg-gray-800 pointer-events-auto h-16 backdrop-blur-2xl opacity-70 border-r border-b border-l rounded-b-xl border-[#EDEDED] flex justify-center items-center">
-				<p className="mr-5 font-VT323">Year 1969</p>
+				<p className="mr-5 font-VT323">1969</p>
 				<DraggableTimeline time={time} setTime={setTime} />
-				<p className="ml-5 font-VT323">Year 1979</p>
+				<p className="ml-5 font-VT323">1977</p>
 			</div>
 			<TimeControls time={time} setTime={setTime} />
 			<div className="absolute bottom-0 left-[0] h-full w-[30%] flex flex-col justify-end items-start">

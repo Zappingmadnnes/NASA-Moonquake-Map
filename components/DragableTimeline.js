@@ -3,47 +3,16 @@ import { useState, useRef, useEffect } from "react";
 function DraggableTimeline({ setTime, time }) {
 	const [handlePosition, setHandlePosition] = useState(0);
 	const [isDragging, setIsDragging] = useState(false);
-	const [currentYear, setCurrentYear] = useState(1969);
+	const [selectedTime, setSelectedTime] = useState(0);
+	const [formattedDate, setFormattedDate] = useState();
 	const timelineRef = useRef(null);
 
-	const calculateYear = (positionPercent) => {
-		const range = 1979 - 1969;
-		return Math.round(1969 + (range * positionPercent) / 100);
-	};
-
-	const calculateDate = (positionPercent) => {
-		const totalMonths = (1979 - 1969) * 12; // Total months in the range
-		const currentMonth = Math.round((totalMonths * positionPercent) / 100);
-		const year = 1969 + Math.floor(currentMonth / 12);
-		const month = currentMonth % 12;
-		return { year, month };
-	};
-
-	function yearToJulianDate(year) {
-		return (year - 1969) * 365.25 + 2440546; // 2440546 is the Julian date for the start of 1969
-	}
-
-	function dateToJulianDate(year, month) {
-		const day = 1; // Set to the first day of the month
-		const a = Math.floor((14 - (month + 1)) / 12);
-		const y = year + 4800 - a;
-		const m = month + 1 + 12 * a - 3;
-		let jd =
-			day +
-			Math.floor((153 * m + 2) / 5) +
-			365 * y +
-			Math.floor(y / 4) -
-			Math.floor(y / 100) +
-			Math.floor(y / 400) -
-			32045;
-		return jd;
-	}
+	const start_date = 2440541;
+	const end_date = 2443418;
 
 	const stopDrag = () => {
 		setIsDragging(false);
-		const { year, month } = calculateDate(handlePosition);
-		setCurrentYear(year); // This can be updated to include the month if needed
-		setTime(dateToJulianDate(year, month)); // Update the main application's time
+		setTime(selectedTime);
 		document.removeEventListener("mousemove", handleDrag);
 		document.removeEventListener("mouseup", stopDrag);
 	};
@@ -55,6 +24,23 @@ function DraggableTimeline({ setTime, time }) {
 
 		const newPositionPercent = (newPosition / timelineRect.width) * 100;
 		setHandlePosition(newPositionPercent);
+		setSelectedTime(
+			((end_date - start_date) * newPositionPercent) / 100 + start_date
+		);
+		const millisecondsSinceEpoch =
+			(((end_date - start_date) * newPositionPercent) / 100 +
+				start_date -
+				2440587.5) *
+			24 *
+			60 *
+			60 *
+			1000;
+		const gregorianDate = new Date(millisecondsSinceEpoch);
+		const year = gregorianDate.getFullYear();
+		const month = String(gregorianDate.getMonth() + 1).padStart(2, "0");
+		const day = String(gregorianDate.getDate()).padStart(2, "0");
+		// const formattedDate = `${year}-${month}-${day}`;
+		setFormattedDate(`${year}-${month}-${day}`);
 	};
 
 	useEffect(() => {
@@ -62,36 +48,13 @@ function DraggableTimeline({ setTime, time }) {
 			document.addEventListener("mousemove", handleDrag);
 			document.addEventListener("mouseup", stopDrag);
 		}
-
 		return () => {
 			document.removeEventListener("mousemove", handleDrag);
 			document.removeEventListener("mouseup", stopDrag);
 		};
 	}, [isDragging, handlePosition]);
 
-	function julianDateToYear(julianDate) {
-		return Math.round((julianDate - 2440546) / 365.25 + 1969);
-	}
-
-	function yearToPositionPercent(year) {
-		const range = 1979 - 1969;
-		const positionPercent = ((year - 1969) / range) * 100;
-		return positionPercent;
-	}
-
-	useEffect(() => {
-		const millisecondsSinceEpoch = (time - 2440587.5) * 24 * 60 * 60 * 1000;
-		const gregorianDate = new Date(millisecondsSinceEpoch);
-		const year = gregorianDate.getFullYear();
-		const month = gregorianDate.getMonth(); // 0-based month
-
-		const totalMonths = (year - 1969) * 12 + month;
-		const totalRangeMonths = (1979 - 1969) * 12;
-		const positionPercent = (totalMonths / totalRangeMonths) * 100;
-
-		setHandlePosition(positionPercent);
-		setCurrentYear(year);
-	}, [time]);
+	// JD to gregorian
 
 	return (
 		<div
@@ -111,9 +74,7 @@ function DraggableTimeline({ setTime, time }) {
 			>
 				{isDragging && (
 					<div className="absolute text-xs -left-[50%] text-white w-fit whitespace-nowrap font-VT323 -bottom-6">
-						{`${calculateDate(handlePosition).year}-${String(
-							calculateDate(handlePosition).month + 1
-						).padStart(2, "0")}`}
+						{formattedDate}
 					</div>
 				)}
 			</div>
