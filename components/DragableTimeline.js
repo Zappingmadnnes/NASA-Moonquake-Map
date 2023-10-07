@@ -11,9 +11,42 @@ function DraggableTimeline({ setTime, time }) {
 		return Math.round(1969 + (range * positionPercent) / 100);
 	};
 
+	const calculateDate = (positionPercent) => {
+		const totalMonths = (1979 - 1969) * 12; // Total months in the range
+		const currentMonth = Math.round((totalMonths * positionPercent) / 100);
+		const year = 1969 + Math.floor(currentMonth / 12);
+		const month = currentMonth % 12;
+		return { year, month };
+	};
+
 	function yearToJulianDate(year) {
 		return (year - 1969) * 365.25 + 2440546; // 2440546 is the Julian date for the start of 1969
 	}
+
+	function dateToJulianDate(year, month) {
+		const day = 1; // Set to the first day of the month
+		const a = Math.floor((14 - (month + 1)) / 12);
+		const y = year + 4800 - a;
+		const m = month + 1 + 12 * a - 3;
+		let jd =
+			day +
+			Math.floor((153 * m + 2) / 5) +
+			365 * y +
+			Math.floor(y / 4) -
+			Math.floor(y / 100) +
+			Math.floor(y / 400) -
+			32045;
+		return jd;
+	}
+
+	const stopDrag = () => {
+		setIsDragging(false);
+		const { year, month } = calculateDate(handlePosition);
+		setCurrentYear(year); // This can be updated to include the month if needed
+		setTime(dateToJulianDate(year, month)); // Update the main application's time
+		document.removeEventListener("mousemove", handleDrag);
+		document.removeEventListener("mouseup", stopDrag);
+	};
 
 	const handleDrag = (event) => {
 		const timelineRect = timelineRef.current.getBoundingClientRect();
@@ -25,14 +58,6 @@ function DraggableTimeline({ setTime, time }) {
 	};
 
 	useEffect(() => {
-		const stopDrag = () => {
-			setIsDragging(false);
-			setCurrentYear(calculateYear(handlePosition));
-			setTime(yearToJulianDate(calculateYear(handlePosition))); // Update the main application's time
-			document.removeEventListener("mousemove", handleDrag);
-			document.removeEventListener("mouseup", stopDrag);
-		};
-
 		if (isDragging) {
 			document.addEventListener("mousemove", handleDrag);
 			document.addEventListener("mouseup", stopDrag);
@@ -55,10 +80,12 @@ function DraggableTimeline({ setTime, time }) {
 	}
 
 	useEffect(() => {
-		const yearFromTime = julianDateToYear(time);
-		const positionPercent = yearToPositionPercent(yearFromTime);
+		const millisecondsSinceEpoch = (time - 2440587.5) * 24 * 60 * 60 * 1000;
+		const gregorianDate = new Date(millisecondsSinceEpoch);
+		const year = gregorianDate.getFullYear();
+		const positionPercent = ((year - 1969) / (1979 - 1969)) * 100;
 		setHandlePosition(positionPercent);
-		setCurrentYear(yearFromTime);
+		setCurrentYear(year);
 	}, [time]);
 
 	return (
@@ -78,8 +105,10 @@ function DraggableTimeline({ setTime, time }) {
 				}}
 			>
 				{isDragging && (
-					<div className="absolute text-xs text-white font-VT323 -bottom-6">
-						{calculateYear(handlePosition)}
+					<div className="absolute text-xs -left-[50%] text-white w-fit whitespace-nowrap font-VT323 -bottom-6">
+						{`${calculateDate(handlePosition).year}-${String(
+							calculateDate(handlePosition).month + 1
+						).padStart(2, "0")}`}
 					</div>
 				)}
 			</div>
