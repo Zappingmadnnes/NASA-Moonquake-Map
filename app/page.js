@@ -9,17 +9,18 @@ import * as THREE from "three";
 
 import Papa from "papaparse";
 import MarkerText from "@/components/MarkerText";
+import Sun from "@/components/Sun";
 import UserInterface from "@/components/UserInterface";
 
 const texture = "/4k-texture.jpeg";
 const displacement = "/4k-displacement.jpeg";
 const starMap = "/4k-starmap.jpeg";
+const earth = "/8k_earth_daymap.jpg";
 
 const scale = 1000;
 const radiusScale = 1000;
 
 const moonRadius = 1734.4 / radiusScale;
-const sunRadius = 696340 / radiusScale;
 const earthRadius = 6371 / radiusScale;
 
 const Marker = ({
@@ -211,18 +212,12 @@ const Moon = ({
 	);
 };
 
-const Sun = ({ position }) => {
-	return (
-		<Sphere args={[sunRadius, 32, 32]} position={position}>
-			<meshBasicMaterial color={0xfce570} />
-		</Sphere>
-	);
-};
-
 const Earth = ({ position }) => {
+	const earthTexture = useLoader(THREE.TextureLoader, earth);
+
 	return (
 		<Sphere args={[earthRadius, 32, 32]} position={position}>
-			<meshBasicMaterial color={"blue"} />
+			<meshStandardMaterial map={earthTexture} />
 		</Sphere>
 	);
 };
@@ -449,7 +444,7 @@ export default function Home() {
 				/>
 
 				<StarMap />
-				<Sun position={sunPosition} />
+				<Sun position={sunPosition} radiusScale={radiusScale} />
 				<Earth
 					position={[
 						earthCenterPosition[0] - earthPosition[0],

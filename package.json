@@ -12,6 +12,7 @@
 		"@headlessui/react": "^1.7.17",
 		"@react-three/drei": "^9.86.3",
 		"@react-three/fiber": "^8.14.4",
+		"@react-three/postprocessing": "^2.15.1",
 		"next": "13.5.4",
 		"papaparse": "^5.4.1",
 		"react": "^18",
