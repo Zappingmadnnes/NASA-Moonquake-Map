@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 
 function TimeControls({ time, setTime }) {
 	const warpFactors = [
-		-10000, -5000, -1000, -500, -200, -100, -50, -10, 5, -1, 0, 1, 5, 10,
-		50, 100, 200, 500, 1000, 5000, 10000,
+		-1000000, -100000, -10000, -5000, -1000, -500, -200, -100, -50, -10, 5,
+		-1, 0, 1, 5, 10, 50, 100, 200, 500, 1000, 5000, 10000, 100000, 1000000,
 	];
 	const [warpIndex, setWarpIndex] = useState(
 		Math.floor(warpFactors.length / 2)
