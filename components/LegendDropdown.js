@@ -12,25 +12,25 @@ export default function LegendDropdown() {
 			title: "DM - Deep Moonquake",
 			color: "#EE984F",
 			description:
-				"Info about deep moonquake...lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas sapiente similique dignissimos ex error illum molestiae perspiciatis, repellendus facilis dolor earum atque qui impedit sint magnam iure repudiandae modi aperiam ",
+				"Deep moonquakes, which occur at depths between 700 and 1000 kilometers, approximately halfway to the Moon's center, are a fascinating lunar phenomenon. These quakes are notably numerous, with around 6000 detected throughout experiments, originating from roughly 300 distinct source regions, many of which have been precisely located. They exhibit a peculiar tidal periodicity, coinciding with the Moon's 27.5-day orbit. Each source region consistently produces repeatable events that correlate with others from the same area, allowing for data stacking. Despite their numerous occurrences, deep moonquakes are relatively small, with magnitudes typically around 1 or less on the body wave scale and stress drops of 1 bar or less. They feature a dominant period of 1 Hz, strong P and S coda that can obscure other arrivals, and a long decay time of approximately 1 hour. These intriguing seismic events primarily appear on LP (long period) channels, adding to their enigmatic nature.",
 		},
 		{
 			title: "SM - Shallow Moonquake",
 			color: "#354A6C",
 			description:
-				"Info about shallow moonquake...lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas sapiente similique dignissimos ex error illum molestiae perspiciatis, repellendus facilis dolor earum atque qui impedit sint magnam iure repudiandae modi aperiam",
+				"Shallow moonquakes present a contrasting aspect of lunar seismic activity. These quakes occur in the upper 100 kilometers of the Moon's surface and are relatively infrequent, with only 28 instances detected throughout the experiment. However, they exhibit considerable energy release, with estimated magnitudes ranging from 3 to 5, making them significantly more powerful than their deep counterparts. What sets shallow moonquakes apart is their appearance on both LP (long period) and SP (short period) channels, providing valuable insights into the lunar interior despite their rarity.",
 		},
 		{
 			title: "MI - Meteorite Impacts",
 			color: "#D21F3C",
 			description:
-				"Info about meteorite impacts...lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas sapiente similique dignissimos ex error illum molestiae perspiciatis, repellendus facilis dolor earum atque qui impedit sint magnam iure repudiandae modi aperiam",
+				"Meteorite impacts on the Moon are natural events that have contributed significantly to shaping the lunar surface and providing valuable insights into lunar geology and planetary science. Much the same as artificial impacts, these impacts occur when meteoroids, asteroids, or comets collide with the Moon's surface.",
 		},
 		{
 			title: "AI - Artificial Impacts",
 			color: "#b8c7de",
 			description:
-				"Info about artificial impacts...lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas sapiente similique dignissimos ex error illum molestiae perspiciatis, repellendus facilis dolor earum atque qui impedit sint magnam iure repudiandae modi aperiam",
+				"Artifical impacts come from probes colliding with the surface. Notably during the experiments Apollo the upper stage and lunar module were ditched to collide with the surface, to collect data.",
 		},
 	];
 
