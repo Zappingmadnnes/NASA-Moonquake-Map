@@ -22,16 +22,32 @@ const moonRadius = 1734.4 / radiusScale;
 const sunRadius = 696340 / radiusScale;
 const earthRadius = 6371 / radiusScale;
 
-const Marker = ({ lat, lon, type, time, depth, duration }) => {
+const Marker = ({
+	lat,
+	lon,
+	type,
+	time,
+	depth,
+	duration,
+	cameraRef,
+	moonRef,
+}) => {
 	const sphereRef = useRef();
+	const groupRef = useRef();
 	const phi = THREE.MathUtils.degToRad(90 - lat); // Convert latitude to radians
 	const theta = -THREE.MathUtils.degToRad(lon); // Convert longitude to radians
 
 	const height = 0.0;
+	const cameraHeight = 2.0;
 	const sphereRadius = moonRadius + height;
 	const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
 	const y = sphereRadius * Math.cos(phi);
 	const z = sphereRadius * Math.sin(phi) * Math.sin(theta);
+
+	const cameraSphereRadius = moonRadius + cameraHeight;
+	const cx = cameraSphereRadius * Math.sin(phi) * Math.cos(theta);
+	const cy = cameraSphereRadius * Math.cos(phi);
+	const cz = cameraSphereRadius * Math.sin(phi) * Math.sin(theta);
 
 	const initialRadius = 10 / radiusScale;
 	const pulseSpeed = 0.05;
@@ -53,9 +69,35 @@ const Marker = ({ lat, lon, type, time, depth, duration }) => {
 		}
 	});
 
-	console.log(`Im @ ${lat}, ${lon}`);
+	function cameraPanIn() {
+		const globalPosition = new THREE.Vector3();
+		if (groupRef.current) {
+			groupRef.current.getWorldPosition(globalPosition);
+		}
+		cameraRef.current?.setLookAt(
+			// Positon to move to
+			globalPosition.x,
+			globalPosition.y,
+			globalPosition.z,
+			// Target to look at
+			moonRef.current.position.x,
+			moonRef.current.position.y,
+			moonRef.current.position.z,
+			true
+		);
+		cameraRef.current?.dolly(-1, true);
+	}
+
 	return (
-		<group position={[x, y, z]}>
+		<group
+			ref={groupRef}
+			position={[x, y, z]}
+			onClick={(vectorEvent) => {
+				let vector = new THREE.Vector3();
+				vectorEvent.object.getWorldPosition(vector);
+				console.log(vector);
+			}}
+		>
 			<Sphere ref={sphereRef} args={[initialRadius, 32, 32]}>
 				<meshBasicMaterial
 					color={
@@ -79,13 +121,14 @@ const Marker = ({ lat, lon, type, time, depth, duration }) => {
 					lon={lon}
 					depth={depth}
 					duration={duration}
+					onClick={cameraPanIn}
 				/>
 			</Html>
 		</group>
 	);
 };
 
-const Moon = ({ position, rotation }) => {
+const Moon = ({ position, rotation, cameraRef }) => {
 	const moonRef = useRef();
 	// Load the moon texture
 	const moonTexture = useLoader(THREE.TextureLoader, texture);
@@ -122,8 +165,6 @@ const Moon = ({ position, rotation }) => {
 					displacementScale={0.0001 * radiusScale}
 				/>
 			</Sphere>
-
-			{/* <Marker lat={0} lon={0} type={"MI"} time={0} /> */}
 			{csvData.map(
 				(entry, index) =>
 					index < 65 && (
@@ -135,6 +176,8 @@ const Moon = ({ position, rotation }) => {
 							time={entry.JDate}
 							depth={entry.Depth}
 							duration={entry.Duration}
+							cameraRef={cameraRef}
+							moonRef={moonRef}
 						/>
 					)
 			)}
@@ -368,7 +411,7 @@ export default function Home() {
 				// earthCenterPosition[1],
 				// earthCenterPosition[2],
 
-				true
+				false
 			);
 			cameraControlRef.current?.zoomTo(1, true);
 		}, 10);
@@ -412,8 +455,17 @@ export default function Home() {
 			<div className="absolute z-50">
 				<button onClick={incrementDate}>Increment Date</button>
 			</div>
-			<Canvas camera={{ position: [0, 0, 5], far: 10000000000000 }}>
-				<CameraControls ref={cameraControlRef} smoothTime={0} />
+			<Canvas
+				camera={{
+					position: [
+						moonPosition[0],
+						moonPosition[1],
+						moonPosition[2],
+					],
+					far: 10000000000000,
+				}}
+			>
+				<CameraControls ref={cameraControlRef} smoothTime={0.8} />
 				<pointLight intensity={80000000000} position={sunPosition} />
 				<ambientLight intensity={0.1} />
 				<Moon
@@ -440,18 +492,6 @@ export default function Home() {
 						earthCenterPosition[2] - earthPosition[2],
 					]}
 				/>
-				{/* <Html
-					occlude={true}
-					position={[
-						earthCenterPosition[0] - moonPosition[0],
-						earthCenterPosition[1] - moonPosition[1],
-						earthCenterPosition[2] - moonPosition[2],
-					]}
-				>
-					HEy
-				</Html> */}
-
-				{/* <EarthCenter position={earthCenterPosition} /> */}
 			</Canvas>
 		</div>
 	);

@@ -5,7 +5,7 @@ import MiniMap from "./MiniMap";
 
 export default function UserInterface({ data }) {
 	return (
-		<div className="absolute inset-0 w-screen h-screen overflow-hidden z-[9999] pointer-events-none">
+		<div className="absolute inset-0 w-screen h-screen overflow-hidden z-[99999999] pointer-events-none">
 			<div className="absolute top-0 left-[35%] right-[35%] bg-gray-800 pointer-events-auto h-16 backdrop-blur-2xl opacity-70 border-r border-b border-l rounded-b-xl border-[#EDEDED] flex justify-center items-center">
 				Data from api: {data}
 			</div>
@@ -47,7 +47,7 @@ export default function UserInterface({ data }) {
 				<DraggableTimeline />
 			</div>
 			<div className="absolute bottom-0 left-[0] h-full w-[30%] flex flex-col justify-end items-start">
-				<div className="w-[80%] bg-gray-800 pointer-events-auto h-[60%] backdrop-blur-2xl border-r border-t border-[#EDEDED] rounded-tr-xl opacity-70 flex flex-col items-center justify-end">
+				{/* <div className="w-[80%] bg-gray-800 pointer-events-auto h-[60%] backdrop-blur-2xl border-r border-t border-[#EDEDED] rounded-tr-xl opacity-70 flex flex-col items-center justify-end">
 					<div className="w-full border-t h-[40%]"></div>
 					<div className="absolute bottom-0 flex items-end justify-center w-full h-40 gap-5 text-[#EDEDED] text-sm">
 						<div className="w-10 h-32 transform -skew-x-[14deg] bg-gray-800 border-t border-l border-r border-[#EDEDED] backdrop-blur-2xl opacity-70 shadow-[inset_0_-2px_8px_#EDEDED] flex justify-center items-center">
@@ -69,7 +69,7 @@ export default function UserInterface({ data }) {
 							<p className="transform -rotate-90">Major</p>
 						</div>
 					</div>
-				</div>
+				</div> */}
 				<MiniMap lat={0} long={0} />
 			</div>
 			<LegendDropdown />

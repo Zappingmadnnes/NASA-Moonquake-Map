@@ -8,6 +8,7 @@ function MarkerText({
 	lon,
 	depth,
 	duration,
+	onClick,
 }) {
 	// const julianDate = 2459497.5;
 	const millisecondsSinceEpoch =
@@ -43,7 +44,8 @@ function MarkerText({
 	};
 	return (
 		<div
-			className={`bg-[#0C141D] w-40 ${
+			onClick={onClick}
+			className={`bg-[#0C141D] w-40 cursor-pointer ${
 				type == "AI"
 					? "border-[#b8c7de]"
 					: type == "SM"

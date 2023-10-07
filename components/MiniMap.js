@@ -25,7 +25,7 @@ export default function MiniMap({ lat, long }) {
 
 	return (
 		<div
-			className="w-full border-t-4 border-r-4 pointer-events-auto border-[#EDEDED] rounded-xl relative"
+			className="w-full border-t-4 border-r-4 pointer-events-auto border-[#354A6C] rounded-xl relative"
 			ref={minimapRef}
 		>
 			<Image
