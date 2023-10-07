@@ -1,4 +1,3 @@
-import Image from "next/image";
 import DraggableTimeline from "./DragableTimeline";
 import LegendDropdown from "./LegendDropdown";
 import MiniMap from "./MiniMap";
@@ -8,70 +7,10 @@ import TimeControls from "./TimeControls";
 export default function UserInterface({ data, events, time, setTime }) {
 	return (
 		<div className="absolute inset-0 w-screen h-screen overflow-hidden z-[99999999] pointer-events-none">
-			<div className="absolute top-0 left-[35%] right-[35%] bg-gray-800 pointer-events-auto h-16 backdrop-blur-2xl opacity-70 border-r border-b border-l rounded-b-xl border-[#EDEDED] flex justify-center items-center">
-				<div className="flex flex-row gap-6 mt-44 whitespace-nowrap">
-					<div className="flex flex-col">
-						<h3>Sun</h3>
-						<ul>
-							{data && data.sun ? (
-								<>
-									<li>X: {data.sun[0]}</li>
-									<li>Y: {data.sun[1]}</li>
-									<li>Z: {data.sun[2]}</li>
-								</>
-							) : (
-								<li>Loading...</li>
-							)}
-						</ul>
-					</div>
-
-					<div className="flex flex-col">
-						<h3>Earth Center</h3>
-						<ul>
-							{data && data.earth_center ? (
-								<>
-									<li>X: {data.earth_center[0]}</li>
-									<li>Y: {data.earth_center[1]}</li>
-									<li>Z: {data.earth_center[2]}</li>
-								</>
-							) : (
-								<li>Loading...</li>
-							)}
-						</ul>
-					</div>
-
-					<div className="flex flex-col">
-						<h3>Earth</h3>
-						<ul>
-							{data && data.earth ? (
-								<>
-									<li>X: {data.earth[0]}</li>
-									<li>Y: {data.earth[1]}</li>
-									<li>Z: {data.earth[2]}</li>
-								</>
-							) : (
-								<li>Loading...</li>
-							)}
-						</ul>
-					</div>
-
-					<div className="flex flex-col">
-						<h3>Moon</h3>
-						<ul>
-							{data && data.moon ? (
-								<>
-									<li>X: {data.moon[0]}</li>
-									<li>Y: {data.moon[1]}</li>
-									<li>Z: {data.moon[2]}</li>
-								</>
-							) : (
-								<li>Loading...</li>
-							)}
-						</ul>
-					</div>
-
-					{/* ... similarly for earth and moon ... */}
-				</div>
+			<div className="absolute top-0 left-[30%] right-[30%] bg-gray-800 pointer-events-auto h-16 backdrop-blur-2xl opacity-70 border-r border-b border-l rounded-b-xl border-[#EDEDED] flex justify-center items-center">
+				<p className="mr-5 font-VT323">Year 1969</p>
+				<DraggableTimeline />
+				<p className="ml-5 font-VT323">Year 1979</p>
 			</div>
 			<TimeControls time={time} setTime={setTime} />
 			<div className="absolute bottom-0 left-[0] h-full w-[30%] flex flex-col justify-end items-start">

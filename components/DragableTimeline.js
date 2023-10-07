@@ -3,19 +3,27 @@ import { useState, useRef, useEffect } from "react";
 function DraggableTimeline() {
 	const [handlePosition, setHandlePosition] = useState(0);
 	const [isDragging, setIsDragging] = useState(false);
+	const [currentYear, setCurrentYear] = useState(1969);
 	const timelineRef = useRef(null);
+
+	const calculateYear = (positionPercent) => {
+		const range = 1979 - 1969;
+		return Math.round(1969 + (range * positionPercent) / 100);
+	};
 
 	const handleDrag = (event) => {
 		const timelineRect = timelineRef.current.getBoundingClientRect();
 		let newPosition = event.clientX - timelineRect.left;
 		newPosition = Math.max(0, Math.min(newPosition, timelineRect.width));
 
-		setHandlePosition((newPosition / timelineRect.width) * 100);
+		const newPositionPercent = (newPosition / timelineRect.width) * 100;
+		setHandlePosition(newPositionPercent);
 	};
 
 	useEffect(() => {
 		const stopDrag = () => {
 			setIsDragging(false);
+			setCurrentYear(calculateYear(handlePosition));
 			document.removeEventListener("mousemove", handleDrag);
 			document.removeEventListener("mouseup", stopDrag);
 		};
@@ -29,11 +37,11 @@ function DraggableTimeline() {
 			document.removeEventListener("mousemove", handleDrag);
 			document.removeEventListener("mouseup", stopDrag);
 		};
-	}, [isDragging]);
+	}, [isDragging, handlePosition]);
 
 	return (
 		<div
-			className="h-1 bg-[#EDEDED] w-[80%] overflow-visible relative select-none"
+			className="h-1 bg-[#EDEDED] w-[70%] overflow-visible relative select-none"
 			ref={timelineRef}
 		>
 			<div
@@ -46,7 +54,13 @@ function DraggableTimeline() {
 					e.preventDefault();
 					setIsDragging(true);
 				}}
-			></div>
+			>
+				{isDragging && (
+					<div className="absolute text-xs text-white font-VT323 -bottom-6">
+						{calculateYear(handlePosition)}
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }
