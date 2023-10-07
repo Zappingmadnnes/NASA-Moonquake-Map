@@ -2,9 +2,9 @@
 // Z and Y are switched, beacuse that's how it is
 
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useImperativeHandle } from "react";
 import { Canvas, useLoader, useFrame, events } from "@react-three/fiber";
-import { Sphere, CameraControls, Html } from "@react-three/drei";
+import { Sphere, CameraControls, Html, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
 import Papa from "papaparse";
@@ -31,6 +31,9 @@ const Marker = ({
 	duration,
 	cameraRef,
 	moonRef,
+	markerPositions,
+	setMarkerPositions,
+	id,
 }) => {
 	const sphereRef = useRef();
 	const groupRef = useRef();
@@ -51,7 +54,7 @@ const Marker = ({
 
 	const initialRadius = 10 / radiusScale;
 	const pulseSpeed = 0.05;
-	const pulseMaxSize = 3;
+	const pulseMaxSize = 5;
 
 	useFrame(() => {
 		const sphere = sphereRef.current;
@@ -87,6 +90,35 @@ const Marker = ({
 		);
 		cameraRef.current?.dolly(-1, true);
 	}
+
+	// To add to marker positions
+	// useEffect(() => {
+	// 	const globalPosition = new THREE.Vector3();
+	// 	if (groupRef.current) {
+	// 		groupRef.current.getWorldPosition(globalPosition);
+	// 	}
+	// 	const existingObjectIndex = markerPositions.findIndex(
+	// 		(obj) => obj.id === id
+	// 	);
+
+	// 	const sx = globalPosition.x;
+	// 	const sy = globalPosition.y;
+	// 	const sz = globalPosition.z;
+
+	// 	const newObj = { id, sx, sy, sz };
+
+	// 	if (existingObjectIndex !== -1) {
+	// 		// Copy the current state array and replace the existing object
+	// 		const updatedArray = [...markerPositions];
+	// 		updatedArray[existingObjectIndex] = newObj;
+
+	// 		// Update the state with the new array
+	// 		setMarkerPositions(updatedArray);
+	// 	} else {
+	// 		// If it doesn't exist, add the new object to the state
+	// 		setMarkerPositions([...markerPositions, newObj]);
+	// 	}
+	// }, [moonRef.current?.position.x, id, markerPositions, setMarkerPositions]);
 
 	return (
 		<group
@@ -128,13 +160,23 @@ const Marker = ({
 	);
 };
 
-const Moon = ({ position, rotation, cameraRef, events }) => {
-	const moonRef = useRef();
+const Moon = ({
+	position,
+	rotation,
+	cameraRef,
+	events,
+	selectedTime,
+	markerPositions,
+	setMarkerPositions,
+	moonRef,
+}) => {
 	// Load the moon texture
 	const moonTexture = useLoader(THREE.TextureLoader, texture);
 
 	// Load the displacement map
 	const displacementMap = useLoader(THREE.TextureLoader, displacement);
+
+	const markerDuration = 30;
 
 	return (
 		<group position={position} rotation={rotation} ref={moonRef}>
@@ -147,7 +189,8 @@ const Moon = ({ position, rotation, cameraRef, events }) => {
 			</Sphere>
 			{events.map(
 				(entry, index) =>
-					index < 65 && (
+					entry.JDate <= selectedTime &&
+					selectedTime <= entry.JDate + markerDuration && (
 						<Marker
 							key={index}
 							lat={entry.Lat}
@@ -158,6 +201,9 @@ const Moon = ({ position, rotation, cameraRef, events }) => {
 							duration={entry.Duration}
 							cameraRef={cameraRef}
 							moonRef={moonRef}
+							markerPositions={markerPositions}
+							setMarkerPositions={setMarkerPositions}
+							id={entry.ID}
 						/>
 					)
 			)}
@@ -211,7 +257,6 @@ export default function Home() {
 	const [earthPosition, setEarthPosition] = useState([0, 0, 0]);
 	const [earthCenterPosition, setCenterEarthPosition] = useState([0, 0, 0]);
 	const [sunPosition, setSunPosition] = useState([0, 0, 0]);
-	// const [selectedTime, setSelectedTime] = useState(2457061.5); // Current earliest CSV data
 	const [selectedTime, setSelectedTime] = useState(2440546); // Earliest quake
 	const [timeBeforeUpdate, setTimeBeforeUpdate] = useState(0);
 
@@ -222,364 +267,70 @@ export default function Home() {
 	const [moonPositionCSV, setMoonPositionCSV] = useState([]);
 	const [sunPositionCSV, setSunPositionCSV] = useState([]);
 	const [moonRotationCSV, setMoonRotationCSV] = useState([]);
+	const [CSV, setCSV] = useState([]);
+	const [lastLine, setLastLine] = useState(0);
 
 	useEffect(() => {
-		// Loads CSV files on load
-		Papa.parse("/positions/earth_center_monthly.csv", {
+		Papa.parse("/positions/coordsCollection.csv", {
 			download: true,
 			header: true,
 			complete: function (results) {
 				const data = results.data;
-				setEarthCenterCSV(data);
-			},
-		});
-		Papa.parse("/positions/earth_positions_monthly.csv", {
-			download: true,
-			header: true,
-			complete: function (results) {
-				const data = results.data;
-				setEarthPositionCSV(data);
-			},
-		});
-		Papa.parse("/positions/moon_positions_monthly.csv", {
-			download: true,
-			header: true,
-			complete: function (results) {
-				const data = results.data;
-				setMoonPositionCSV(data);
-			},
-		});
-		Papa.parse("/positions/sun_positions_monthly.csv", {
-			download: true,
-			header: true,
-			complete: function (results) {
-				const data = results.data;
-				setSunPositionCSV(data);
-			},
-		});
-		Papa.parse("/positions/moon_rotation.csv", {
-			download: true,
-			header: true,
-			complete: function (results) {
-				const data = results.data;
-				setMoonRotationCSV(data);
+				setCSV(data);
 			},
 		});
 	}, []);
 
 	useEffect(() => {
-		const updateIncrement = 10;
-		// Load and parse your CSV files here and set the positions
-
-		// Example of loading and parsing a CSV file for Earth
-		if (earthCenterCSV.length > 0) {
+		if (CSV.length > 0) {
 			let closestRowIndex = 0;
-			for (let i = 0; i < earthPositionCSV.length - 100; i++) {
-				if (selectedTime >= earthPositionCSV[i].Date) {
+			for (let i = 0; i < CSV.length - 10; i++) {
+				if (selectedTime >= CSV[i].Date) {
 					closestRowIndex = i;
-					if (selectedTime < earthPositionCSV[i + 1].Date) {
+					if (selectedTime < CSV[i + 1].Date) {
+						console.log("Found at " + i);
 						break;
 					}
 				}
 			}
-			const x = parseFloat(earthCenterCSV[closestRowIndex]["X (km)"]);
-			const z = -parseFloat(earthCenterCSV[closestRowIndex]["Y (km)"]);
-			const y = parseFloat(earthCenterCSV[closestRowIndex]["Z (km)"]);
-			setCenterEarthPosition([x / scale, y / scale, z / scale]);
+			// if (closestRowIndex == 0) {
+			// 	console.log("rerunning");
+			// 	for (let i = 0; i < CSV.length - 100; i++) {
+			// 		if (selectedTime >= CSV[i].Date) {
+			// 			closestRowIndex = i;
+			// 			if (selectedTime < CSV[i + 1].Date) {
+			// 				break;
+			// 			}
+			// 		}
+			// 	}
+			// }
 
-			// console.log(
-			// `Earth center position: ${[x / scale, y / scale, z / scale]}`
-			// );
-		}
-		if (earthPositionCSV.length > 0) {
-			let closestRowIndex = 0;
-			for (let i = 0; i < earthPositionCSV.length - 100; i++) {
-				if (selectedTime >= earthPositionCSV[i].Date) {
-					closestRowIndex = i;
-					if (selectedTime < earthPositionCSV[i + 1].Date) {
-						break;
-					}
-				}
-			}
-			const x = parseFloat(earthPositionCSV[closestRowIndex]["X (km)"]);
-			const z = -parseFloat(earthPositionCSV[closestRowIndex]["Y (km)"]);
-			const y = parseFloat(earthPositionCSV[closestRowIndex]["Z (km)"]);
-			setEarthPosition([x / scale, y / scale, z / scale]);
+			const Cx = parseFloat(CSV[closestRowIndex]["ECX (km)"]);
+			const Cz = -parseFloat(CSV[closestRowIndex]["ECY (km)"]);
+			const Cy = parseFloat(CSV[closestRowIndex]["ECZ (km)"]);
+			setCenterEarthPosition([Cx / scale, Cy / scale, Cz / scale]);
 
-			// console.log(`Earth position: ${[x / scale, y / scale, z / scale]}`);
-		}
-		if (moonPositionCSV.length > 0) {
-			let closestRowIndex = 0;
-			for (let i = 0; i < moonPositionCSV.length - 100; i++) {
-				if (selectedTime >= moonPositionCSV[i].Date) {
-					closestRowIndex = i;
-					if (selectedTime < moonPositionCSV[i + 1].Date) {
-						break;
-					}
-				}
-			}
-			const x = -parseFloat(moonPositionCSV[closestRowIndex]["X (km)"]);
-			const z = parseFloat(moonPositionCSV[closestRowIndex]["Y (km)"]);
-			const y = -parseFloat(moonPositionCSV[closestRowIndex]["Z (km)"]);
-			setMoonPosition([x / scale, y / scale, z / scale]);
+			const Ex = parseFloat(CSV[closestRowIndex]["EX (km)"]);
+			const Ez = -parseFloat(CSV[closestRowIndex]["EY (km)"]);
+			const Ey = parseFloat(CSV[closestRowIndex]["EZ (km)"]);
+			setEarthPosition([Ex / scale, Ey / scale, Ez / scale]);
 
-			// console.log(`Moon position: ${[x / scale, y / scale, z / scale]}`);
-		}
-		if (sunPositionCSV.length > 0) {
-			let closestRowIndex = 0;
-			for (let i = 0; i < sunPositionCSV.length - 100; i++) {
-				if (selectedTime >= sunPositionCSV[i].Date) {
-					closestRowIndex = i;
-					if (selectedTime < sunPositionCSV[i + 1].Date) {
-						break;
-					}
-				}
-			}
-			const x = parseFloat(sunPositionCSV[closestRowIndex]["X (km)"]);
-			const z = -parseFloat(sunPositionCSV[closestRowIndex]["Y (km)"]);
-			const y = parseFloat(sunPositionCSV[closestRowIndex]["Z (km)"]);
-			setSunPosition([x / scale, y / scale, z / scale]);
+			const Mx = -parseFloat(CSV[closestRowIndex]["MX (km)"]);
+			const Mz = parseFloat(CSV[closestRowIndex]["MY (km)"]);
+			const My = -parseFloat(CSV[closestRowIndex]["MZ (km)"]);
+			setMoonPosition([Mx / scale, My / scale, Mz / scale]);
 
-			// console.log(`Sun position: ${[x / scale, y / scale, z / scale]}`);
-		}
+			const Sx = parseFloat(CSV[closestRowIndex]["SX (km)"]);
+			const Sz = -parseFloat(CSV[closestRowIndex]["SY (km)"]);
+			const Sy = parseFloat(CSV[closestRowIndex]["SZ (km)"]);
+			setSunPosition([Sx / scale, Sy / scale, Sz / scale]);
 
-		// Papa.parse("/positions/moon_rotation.csv", {
-		// 	download: true,
-		// 	header: true,
-		// 	complete: function (results) {
-		// 		const data = results.data;
-		// 		const matchingData = data.find(
-		// 			(row) => row.Date === selectedTime.toString()
-		// 		);
-		// 		const matchingIndex = data.findIndex(
-		// 			(row) => row.Date === selectedTime.toString()
-		// 		);
-
-		// 		if (matchingData) {
-		// 			const ra = parseFloat(
-		// 				data[matchingIndex]["Right Ascension"]
-		// 			);
-		// 			const de = parseFloat(data[matchingIndex]["Declination"]);
-		// 			const cr = parseFloat(
-		// 				data[matchingIndex]["Cumulative Rotation"]
-		// 			);
-		// 			setMoonRotation([ra, de, cr]);
-
-		// 			console.log(`Moon rotation (ra, de, cr): ${[ra, de, cr]}`);
-		// 		} else {
-		// 			console.log("Not matching");
-		// 		}
-		// 	},
-		// });
-		if (moonRotationCSV.length > 0) {
-			let closestRowIndex = 0;
-			for (let i = 0; i < moonRotationCSV.length - 100; i++) {
-				if (selectedTime >= moonRotationCSV[i].Date) {
-					closestRowIndex = i;
-					if (selectedTime < moonRotationCSV[i + 1].Date) {
-						break;
-					}
-				}
-			}
-			const ra = parseFloat(
-				moonRotationCSV[closestRowIndex]["Right Ascension"]
-			);
-			const de = parseFloat(
-				moonRotationCSV[closestRowIndex]["Declination"]
-			);
-			const cr = parseFloat(
-				moonRotationCSV[closestRowIndex]["Cumulative Rotation"]
-			);
+			const ra = parseFloat(CSV[closestRowIndex]["Right Ascension"]);
+			const de = parseFloat(CSV[closestRowIndex]["Declination"]);
+			const cr = parseFloat(CSV[closestRowIndex]["Cumulative Rotation"]);
 			setMoonRotation([ra, de, cr]);
 		}
-
-		// // Repeat the above code for sun CSV file
-		// Papa.parse("/positions/sun_positions_monthly.csv", {
-		// 	download: true,
-		// 	header: true,
-		// 	complete: function (results) {
-		// 		const data = results.data;
-		// 		const matchingData = data.find(
-		// 			(row) => row.Date === selectedTime.toString()
-		// 		);
-		// 		const matchingIndex = data.findIndex(
-		// 			(row) => row.Date === selectedTime.toString()
-		// 		);
-		// 		if (matchingData) {
-		// 			const x = parseFloat(data[matchingIndex]["X (km)"]);
-		// 			const z = -parseFloat(data[matchingIndex]["Y (km)"]);
-		// 			const y = parseFloat(data[matchingIndex]["Z (km)"]);
-		// 			setSunPosition([x / scale, y / scale, z / scale]);
-
-		// 			console.log(
-		// 				`Sun position: ${[x / scale, y / scale, z / scale]}`
-		// 			);
-		// 		}
-		// 	},
-		// });
-
-		// Papa.parse("/positions/earth_positions_monthly.csv", {
-		// 	download: true,
-		// 	header: true,
-		// 	complete: function (results) {
-		// 		const data = results.data;
-		// 		const matchingData = data.find(
-		// 			(row) => row.Date === selectedTime.toString()
-		// 		);
-		// 		const matchingIndex = data.findIndex(
-		// 			(row) => row.Date === selectedTime.toString()
-		// 		);
-		// 		if (matchingData) {
-		// 			const x = parseFloat(data[matchingIndex]["X (km)"]);
-		// 			const z = -parseFloat(data[matchingIndex]["Y (km)"]);
-		// 			const y = parseFloat(data[matchingIndex]["Z (km)"]);
-		// 			setEarthPosition([x / scale, y / scale, z / scale]);
-
-		// 			console.log(
-		// 				`Earth relative position: ${[
-		// 					x / scale,
-		// 					y / scale,
-		// 					z / scale,
-		// 				]}`
-		// 			);
-		// 		}
-		// 	},
-		// });
-		// Papa.parse("/positions/moon_positions_monthly.csv", {
-		// 	download: true,
-		// 	header: true,
-		// 	complete: function (results) {
-		// 		const data = results.data;
-		// 		const matchingData = data.find(
-		// 			(row) => row.Date === selectedTime.toString()
-		// 		);
-		// 		const matchingIndex = data.findIndex(
-		// 			(row) => row.Date === selectedTime.toString()
-		// 		);
-		// 		if (matchingData) {
-		// 			const x = -parseFloat(data[matchingIndex]["X (km)"]);
-		// 			const z = parseFloat(data[matchingIndex]["Y (km)"]);
-		// 			const y = -parseFloat(data[matchingIndex]["Z (km)"]); // VERTICAL BITCH
-		// 			setMoonPosition([x / scale, y / scale, z / scale]);
-
-		// 			console.log(
-		// 				`Moon relative  position: ${[
-		// 					x / scale,
-		// 					y / scale,
-		// 					z / scale,
-		// 				]}`
-		// 			);
-		// 		}
-		// 	},
-		// });
-		// Papa.parse("/positions/moon_rotation.csv", {
-		// 	download: true,
-		// 	header: true,
-		// 	complete: function (results) {
-		// 		const data = results.data;
-		// 		const matchingData = data.find(
-		// 			(row) => row.Date === selectedTime.toString()
-		// 		);
-		// 		const matchingIndex = data.findIndex(
-		// 			(row) => row.Date === selectedTime.toString()
-		// 		);
-
-		// 		if (matchingData) {
-		// 			const ra = parseFloat(
-		// 				data[matchingIndex]["Right Ascension"]
-		// 			);
-		// 			const de = parseFloat(data[matchingIndex]["Declination"]);
-		// 			const cr = parseFloat(
-		// 				data[matchingIndex]["Cumulative Rotation"]
-		// 			);
-		// 			setMoonRotation([ra, de, cr]);
-
-		// 			console.log(`Moon rotation (ra, de, cr): ${[ra, de, cr]}`);
-		// 		} else {
-		// 			console.log("Not matching");
-		// 		}
-		// 	},
-		// });
-	}, [
-		selectedTime,
-		earthCenterCSV,
-		moonPositionCSV,
-		moonRotationCSV,
-		sunPositionCSV,
-		earthPositionCSV,
-	]);
-
-	// useEffect(() => {
-	// 	const timer = setTimeout(() => {
-	// 		console.log(
-	// 			`Moving to : ${earthCenterPosition[0] - moonPosition[0]}, ${
-	// 				earthCenterPosition[1] - moonPosition[1]
-	// 			}, ${earthCenterPosition[2] - moonPosition[2]}}`
-	// 		);
-	// 		cameraControlRef.current?.setLookAt(
-	// 			// // Positon to move to
-	// 			// 0,
-	// 			// 1000000,
-	// 			// 0,
-	// 			// // Target to look at
-	// 			// 0,
-	// 			// 0,
-	// 			// 0,
-	// 			// Positon to move to
-	// 			earthCenterPosition[0] - earthPosition[0],
-	// 			earthCenterPosition[1] - earthPosition[1],
-	// 			earthCenterPosition[2] - earthPosition[2],
-	// 			// Target to look at
-	// 			earthCenterPosition[0] - moonPosition[0],
-	// 			earthCenterPosition[1] - moonPosition[1],
-	// 			earthCenterPosition[2] - moonPosition[2],
-
-	// 			// // Positon to move to
-	// 			// earthCenterPosition[0],
-	// 			// earthCenterPosition[1] + 10000,
-	// 			// earthCenterPosition[2],
-	// 			// // Target to look at
-	// 			// earthCenterPosition[0],
-	// 			// earthCenterPosition[1],
-	// 			// earthCenterPosition[2],
-
-	// 			false
-	// 		);
-	// 		cameraControlRef.current?.zoomTo(1, true);
-	// 	}, 10);
-
-	// 	// Clear the timer to prevent it from running if the component unmounts
-	// 	return () => clearTimeout(timer);
-	// }, [moonPosition, earthCenterPosition]);
-
-	useEffect(() => {
-		const fetchData = async () => {
-			fetch("/api?julianDate=2440546").then((res) => {
-				console.log(res);
-			});
-
-			try {
-				const response = await fetch("/api?julianDate=2440546", {
-					method: "GET",
-				});
-				if (!response.ok) {
-					throw new Error("Network response was not ok");
-				}
-				const data = await response.json();
-				console.log(data.result);
-				setApiData(data.result);
-			} catch (error) {
-				console.error("Error:", error);
-			}
-		};
-
-		fetchData();
-	}, []);
-
-	// Temp function to increment by 1 for testing
-	const incrementDate = () => {
-		setSelectedTime(selectedTime + 1);
-	};
+	}, [selectedTime, CSV]);
 
 	const [csvData, setCsvData] = useState([]);
 
@@ -602,11 +353,6 @@ export default function Home() {
 	}, []);
 
 	const resetCamera = () => {
-		console.log(
-			`Moving to : ${earthCenterPosition[0] - moonPosition[0]}, ${
-				earthCenterPosition[1] - moonPosition[1]
-			}, ${earthCenterPosition[2] - moonPosition[2]}}`
-		);
 		cameraControlRef.current?.setLookAt(
 			// Positon to move to
 			earthCenterPosition[0] - earthPosition[0] * 80.2,
@@ -619,12 +365,17 @@ export default function Home() {
 
 			false
 		);
+
 		cameraControlRef.current?.zoomTo(1, true);
 	};
 
 	useEffect(() => {
 		resetCamera();
-	}, [earthCenterPosition]);
+	}, [moonPosition]);
+
+	const [markerPositions, setMarkerPositions] = useState([]);
+
+	const moonRef = useRef();
 
 	return (
 		<div className="relative w-screen h-screen">
@@ -633,9 +384,18 @@ export default function Home() {
 				events={csvData}
 				time={selectedTime}
 				setTime={setSelectedTime}
+				markerPositions={markerPositions}
+				moonRef={moonRef}
+				cameraRef={cameraControlRef}
 			/>
-			<div className="absolute right-0 z-50">
+			<div className="absolute right-0 z-50 top-64">
 				<button onClick={resetCamera}>Reset camera</button>
+				<button onClick={() => console.log(sunPosition)}>
+					Moon pos
+				</button>
+				<button onClick={() => console.log(markerPositions)}>
+					Marker positions
+				</button>
 			</div>
 			<Canvas
 				camera={{
@@ -651,6 +411,8 @@ export default function Home() {
 				<pointLight intensity={80000000000} position={sunPosition} />
 				<ambientLight intensity={0.1} />
 				<Moon
+					markerPositions={markerPositions}
+					setMarkerPositions={setMarkerPositions}
 					events={csvData}
 					position={[
 						earthCenterPosition[0] - moonPosition[0],
@@ -664,6 +426,8 @@ export default function Home() {
 						// 0, 1, 0,
 					]}
 					cameraRef={cameraControlRef}
+					selectedTime={selectedTime}
+					moonRef={moonRef}
 				/>
 
 				<StarMap />

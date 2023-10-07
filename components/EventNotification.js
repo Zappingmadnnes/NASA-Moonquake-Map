@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function EventNotification({ event }) {
+function EventNotification({ event, x, y, z, moonRef, cameraRef }) {
 	const lat = event.Lat;
 	const lon = event.Lon;
 	const type = event.Type;
@@ -39,8 +39,24 @@ function EventNotification({ event }) {
 			return "opacity-[1]";
 		}
 	};
+
+	function cameraPanIn() {
+		cameraRef.current?.setLookAt(
+			// Positon to move to
+			x,
+			y,
+			z,
+			// Target to look at
+			moonRef.current.position.x,
+			moonRef.current.position.y,
+			moonRef.current.position.z,
+			true
+		);
+		cameraRef.current?.dolly(-1, true);
+	}
 	return (
 		<div
+			// onClick={cameraPanIn}
 			className={`bg-[#0C141D] w-full cursor-pointer ${
 				type == "AI"
 					? "border-[#b8c7de]"
@@ -119,10 +135,18 @@ function EventNotification({ event }) {
 					</div>
 				)}
 			</div>
-
-			<div className="flex space-x-2">
-				<p className="font-VT323 text-sm">Lat: {lat.toFixed(2)}°</p>
-				<p className="font-VT323 text-sm">Lon: {lon.toFixed(2)}°</p>
+			<div className="flex justify-between items-end">
+				<div className="flex space-x-2">
+					<p className="font-VT323 text-sm whitespace-nowrap">
+						Lat: {lat.toFixed(2)}°
+					</p>
+					<p className="font-VT323 text-sm whitespace-nowrap">
+						Lon: {lon.toFixed(2)}°
+					</p>
+				</div>
+				<p className="text-right font-VT323 text-sm">
+					Source: {event.Origin}
+				</p>
 			</div>
 		</div>
 	);

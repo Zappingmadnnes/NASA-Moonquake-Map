@@ -4,7 +4,15 @@ import MiniMap from "./MiniMap";
 import EventNotification from "./EventNotification";
 import TimeControls from "./TimeControls";
 
-export default function UserInterface({ data, events, time, setTime }) {
+export default function UserInterface({
+	data,
+	events,
+	time,
+	setTime,
+	markerPositions,
+	moonRef,
+	cameraRef,
+}) {
 	return (
 		<div className="absolute inset-0 w-screen h-screen overflow-hidden z-[99999999] pointer-events-none">
 			<div className="absolute top-0 left-[30%] right-[30%] bg-gray-800 pointer-events-auto h-16 backdrop-blur-2xl opacity-70 border-r border-b border-l rounded-b-xl border-[#EDEDED] flex justify-center items-center">
@@ -15,12 +23,32 @@ export default function UserInterface({ data, events, time, setTime }) {
 			<TimeControls time={time} setTime={setTime} />
 			<div className="absolute bottom-0 left-[0] h-full w-[30%] flex flex-col justify-end items-start">
 				<div className="overflow-y-auto pointer-events-auto scrollbar-none bg-[#0C141D] border-[#354A6C] border-r-2 opacity-80 p-4">
-					{events.map(
-						(entry, index) =>
-							index < 65 && (
-								<EventNotification key={index} event={entry} />
-							)
-					)}
+					{events.map((entry, index) => {
+						if (entry.JDate <= time) {
+							// Find the object with the matching id
+							const matchingEvent = markerPositions.find(
+								(event) => event.id === entry.ID
+							);
+
+							if (matchingEvent) {
+								// Extract x, y, and z from the matching event
+								const { sx, sy, sz } = matchingEvent;
+
+								return (
+									<EventNotification
+										key={index}
+										event={entry}
+										x={sx}
+										y={sy}
+										z={sz}
+										moonRef={moonRef}
+										cameraRef={cameraRef}
+									/>
+								);
+							}
+						}
+						return null;
+					})}
 				</div>
 
 				{/* <div className="w-[80%] bg-gray-800 pointer-events-auto h-[60%] backdrop-blur-2xl border-r border-t border-[#EDEDED] rounded-tr-xl opacity-70 flex flex-col items-center justify-end">
