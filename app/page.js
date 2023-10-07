@@ -215,7 +215,7 @@ export default function Home() {
 	const [selectedTime, setSelectedTime] = useState(2440546); // Earliest quake
 	const [timeBeforeUpdate, setTimeBeforeUpdate] = useState(0);
 
-	const [apiData, setApiData] = useState();
+	const [apiData, setApiData] = useState({});
 
 	const [earthCenterCSV, setEarthCenterCSV] = useState([]);
 	const [earthPositionCSV, setEarthPositionCSV] = useState([]);
@@ -554,12 +554,12 @@ export default function Home() {
 
 	useEffect(() => {
 		const fetchData = async () => {
-			fetch("/api?number=5").then((res) => {
+			fetch("/api?julianDate=2440546").then((res) => {
 				console.log(res);
 			});
 
 			try {
-				const response = await fetch("/api?number=5", {
+				const response = await fetch("/api?julianDate=2440546", {
 					method: "GET",
 				});
 				if (!response.ok) {
