@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
-function DraggableTimeline() {
+function DraggableTimeline({ setTime, time }) {
 	const [handlePosition, setHandlePosition] = useState(0);
 	const [isDragging, setIsDragging] = useState(false);
 	const [currentYear, setCurrentYear] = useState(1969);
@@ -10,6 +10,10 @@ function DraggableTimeline() {
 		const range = 1979 - 1969;
 		return Math.round(1969 + (range * positionPercent) / 100);
 	};
+
+	function yearToJulianDate(year) {
+		return (year - 1969) * 365.25 + 2440546; // 2440546 is the Julian date for the start of 1969
+	}
 
 	const handleDrag = (event) => {
 		const timelineRect = timelineRef.current.getBoundingClientRect();
@@ -24,6 +28,7 @@ function DraggableTimeline() {
 		const stopDrag = () => {
 			setIsDragging(false);
 			setCurrentYear(calculateYear(handlePosition));
+			setTime(yearToJulianDate(calculateYear(handlePosition))); // Update the main application's time
 			document.removeEventListener("mousemove", handleDrag);
 			document.removeEventListener("mouseup", stopDrag);
 		};
@@ -38,6 +43,23 @@ function DraggableTimeline() {
 			document.removeEventListener("mouseup", stopDrag);
 		};
 	}, [isDragging, handlePosition]);
+
+	function julianDateToYear(julianDate) {
+		return Math.round((julianDate - 2440546) / 365.25 + 1969);
+	}
+
+	function yearToPositionPercent(year) {
+		const range = 1979 - 1969;
+		const positionPercent = ((year - 1969) / range) * 100;
+		return positionPercent;
+	}
+
+	useEffect(() => {
+		const yearFromTime = julianDateToYear(time);
+		const positionPercent = yearToPositionPercent(yearFromTime);
+		setHandlePosition(positionPercent);
+		setCurrentYear(yearFromTime);
+	}, [time]);
 
 	return (
 		<div
