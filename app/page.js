@@ -250,7 +250,6 @@ export default function Home() {
 	const [moonPosition, setMoonPosition] = useState([0, 0, 0]);
 	const [moonRotation, setMoonRotation] = useState([0, 0, 0]);
 	const [earthPosition, setEarthPosition] = useState([0, 0, 0]);
-	const [earthCenterPosition, setCenterEarthPosition] = useState([0, 0, 0]);
 	const [sunPosition, setSunPosition] = useState([0, 0, 0]);
 	const [selectedTime, setSelectedTime] = useState(2440541); // Earliest quake -5
 	const [timeBeforeUpdate, setTimeBeforeUpdate] = useState(0);
@@ -330,17 +329,24 @@ export default function Home() {
 			const Cx = parseFloat(CSV[closestRowIndex]["ECX (km)"]);
 			const Cz = -parseFloat(CSV[closestRowIndex]["ECY (km)"]);
 			const Cy = parseFloat(CSV[closestRowIndex]["ECZ (km)"]);
-			setCenterEarthPosition([Cx / scale, Cy / scale, Cz / scale]);
 
 			const Ex = parseFloat(CSV[closestRowIndex]["EX (km)"]);
 			const Ez = -parseFloat(CSV[closestRowIndex]["EY (km)"]);
 			const Ey = parseFloat(CSV[closestRowIndex]["EZ (km)"]);
-			setEarthPosition([Ex / scale, Ey / scale, Ez / scale]);
+			setEarthPosition([
+				(Cx + Ex) / scale,
+				(-Cy + Ey) / scale,
+				(Cz + Ez) / scale,
+			]);
 
 			const Mx = -parseFloat(CSV[closestRowIndex]["MX (km)"]);
 			const Mz = parseFloat(CSV[closestRowIndex]["MY (km)"]);
 			const My = -parseFloat(CSV[closestRowIndex]["MZ (km)"]);
-			setMoonPosition([Mx / scale, My / scale, Mz / scale]);
+			setMoonPosition([
+				(Cx - Mx) / scale,
+				(-Cy - My) / scale,
+				(Cz - Mz) / scale,
+			]);
 
 			const Sx = parseFloat(CSV[closestRowIndex]["SX (km)"]);
 			const Sz = -parseFloat(CSV[closestRowIndex]["SY (km)"]);
@@ -377,22 +383,24 @@ export default function Home() {
 	const resetCamera = () => {
 		cameraControlRef.current?.setLookAt(
 			// Positon to move to
-			earthCenterPosition[0] - earthPosition[0] * 80.2,
-			earthCenterPosition[1] - earthPosition[1] * 80.2,
-			earthCenterPosition[2] - earthPosition[2] * 80.2,
+			earthPosition[0],
+			earthPosition[1],
+			earthPosition[2],
 			// Target to look at
-			earthCenterPosition[0] - moonPosition[0],
-			earthCenterPosition[1] - moonPosition[1],
-			earthCenterPosition[2] - moonPosition[2],
+			moonPosition[0],
+			moonPosition[1],
+			moonPosition[2],
 
 			false
 		);
 
-		cameraControlRef.current?.zoomTo(1, true);
+		cameraControlRef.current?.zoomTo(70, true);
 	};
 
 	useEffect(() => {
 		resetCamera();
+
+		console.log([moonPosition, earthPosition, sunPosition]);
 	}, [moonPosition]);
 
 	const [markerPositions, setMarkerPositions] = useState([]);
@@ -401,6 +409,7 @@ export default function Home() {
 
 	return (
 		<div className="relative w-screen h-screen">
+			<div className="absolute right-0-0 top-80 z-9999"></div>
 			<UserInterface
 				data={apiData}
 				events={csvData}
@@ -428,9 +437,9 @@ export default function Home() {
 					setMarkerPositions={setMarkerPositions}
 					events={csvData}
 					position={[
-						earthCenterPosition[0] - moonPosition[0],
-						earthCenterPosition[1] - moonPosition[1],
-						earthCenterPosition[2] - moonPosition[2],
+						moonPosition[0],
+						moonPosition[1],
+						moonPosition[2],
 					]}
 					rotation={[
 						moonRotation[1],
@@ -447,9 +456,9 @@ export default function Home() {
 				<Sun position={sunPosition} radiusScale={radiusScale} />
 				<Earth
 					position={[
-						earthCenterPosition[0] - earthPosition[0],
-						earthCenterPosition[1] - earthPosition[1],
-						earthCenterPosition[2] - earthPosition[2],
+						earthPosition[0],
+						earthPosition[1],
+						earthPosition[2],
 					]}
 				/>
 			</Canvas>
