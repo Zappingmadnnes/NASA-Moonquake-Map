@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 
 function MarkerText({
 	type,
@@ -42,6 +43,19 @@ function MarkerText({
 			return "opacity-[1]";
 		}
 	};
+
+	const [isFadingIn, setIsFadingIn] = useState(false);
+
+	// Function to trigger the fade-in effect
+	const fadeIn = () => {
+		setIsFadingIn(true);
+	};
+
+	// Use useEffect to trigger the fade-in effect after a short delay
+	useEffect(() => {
+		const timeoutId = setTimeout(fadeIn, 100); // Adjust the delay as needed
+		return () => clearTimeout(timeoutId); // Clean up the timeout if the component unmounts
+	}, []);
 	return (
 		<div
 			onClick={onClick}
@@ -53,7 +67,9 @@ function MarkerText({
 					: type == "MI"
 					? "border-[#D21F3C]"
 					: "border-[#EE984F]"
-			} border-2 px-2 py-1 m-4 bg-opacity-80 rounded-lg flex flex-col`}
+			} border-2 px-2 py-1 m-4 bg-opacity-80 rounded-lg flex flex-col duration-500 transition-all ${
+				isFadingIn ? "scale-100" : "scale-0"
+			}`}
 		>
 			<div className="flex justify-between">
 				<p className="font-VT323 text-xl">{formattedDate}</p>

@@ -3,9 +3,9 @@ import React, { useEffect, useState } from "react";
 
 function TimeControls({ time, setTime }) {
 	const warpFactors = [
-		-100000000, -10000000, -1000000, -100000, -10000, -5000, -1000, -500,
-		-200, -100, -50, -10, 5, -1, 0, 1, 5, 10, 50, 100, 200, 500, 1000, 5000,
-		10000, 100000, 1000000, 10000000, 100000000,
+		-100000000, -10000000, -1000000, -500000, -100000, -10000, -5000, -1000,
+		-500, -50, -1, 0, 1, 50, 500, 1000, 5000, 10000, 100000, 500000,
+		1000000, 10000000, 100000000,
 	];
 	const [warpIndex, setWarpIndex] = useState(
 		Math.floor(warpFactors.length / 2)
@@ -27,9 +27,18 @@ function TimeControls({ time, setTime }) {
 	const formattedDate = `${year}-${month}-${day}`;
 	const formattedTime = `${hours}:${minutes}:${seconds}`;
 
+	const start_date = 2440541;
+	const end_date = 2443418;
 	// Function to increment time by the warp value every tenth of a second
 	const incrementTime = () => {
-		setTime(time + warpFactors[warpIndex] / 24 / 60 / 60 / 100);
+		if (
+			time + warpFactors[warpIndex] / 24 / 60 / 60 / 100 >= start_date &&
+			time + warpFactors[warpIndex] / 24 / 60 / 60 / 100 <= end_date
+		) {
+			setTime(time + warpFactors[warpIndex] / 24 / 60 / 60 / 75);
+		} else {
+			setWarpIndex(Math.floor(warpFactors.length / 2));
+		}
 	};
 
 	useEffect(() => {

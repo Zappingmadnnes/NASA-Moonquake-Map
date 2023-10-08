@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import * as THREE from "three";
 
 function EventNotification({ event, moonRef, cameraRef }) {
@@ -66,6 +67,19 @@ function EventNotification({ event, moonRef, cameraRef }) {
 		);
 		cameraRef.current?.dolly(-1, true);
 	}
+
+	const [isFadingIn, setIsFadingIn] = useState(false);
+
+	// Function to trigger the fade-in effect
+	const fadeIn = () => {
+		setIsFadingIn(true);
+	};
+
+	// Use useEffect to trigger the fade-in effect after a short delay
+	useEffect(() => {
+		const timeoutId = setTimeout(fadeIn, 100); // Adjust the delay as needed
+		return () => clearTimeout(timeoutId); // Clean up the timeout if the component unmounts
+	}, []);
 	return (
 		<div
 			onClick={cameraPanIn}
@@ -77,7 +91,9 @@ function EventNotification({ event, moonRef, cameraRef }) {
 					: type == "MI"
 					? "border-[#D21F3C]"
 					: "border-[#EE984F]"
-			} border-2 px-2 py-1 my-2 bg-opacity-80 rounded-lg flex flex-col`}
+			} border-2 px-2 py-1 my-2 bg-opacity-80 duration-500 transition-all ${
+				isFadingIn ? "scale-100" : "scale-0"
+			} rounded-lg flex flex-col`}
 		>
 			<div className="flex justify-between">
 				<p className="font-VT323 text-xl mr-2">{formattedDate}</p>
