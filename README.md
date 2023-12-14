@@ -14,7 +14,7 @@
 <h3 align="center">NASA Moonquake Map</h3>
 
   <p align="center">
-    A 3D map of the moon displaying recorded seismic events from the apollo era. Powered by open data from NASA. 2nd place winner in NASA Space Apps Challenge 2023, Latvia.
+    A 3D map of the moon displaying recorded seismic events from the apollo era. Powered by open data from NASA. Made in 48 hours, 2nd place winner in NASA Space Apps Challenge 2023, Latvia.
     <br />
     <a href="https://cornelius-two.vercel.app"><strong>Try it out »</strong></a>
     <br />
